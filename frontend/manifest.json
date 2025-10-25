@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Growfolio",
+  "version": "1.0",
+  "description": "ML-powered financial advisor demo",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "permissions": ["storage", "activeTab", "scripting"]
+}
