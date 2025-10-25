@@ -3,37 +3,37 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GrowFolio - Risk Intake</title>
+  <title>GrowFolio - Intake</title>
   <link rel="stylesheet" href="popup.css"/>
 </head>
 <body>
   <div id="popup-wrapper">
-    <!-- Logo -->
+    <!-- Header -->
     <div id="logo-container">
-      <img src="assets/logo.png" alt="GrowFolio Logo" id="logo"/>
+      <img src="assets/logo.png" alt="GrowFolio" id="logo"/>
     </div>
 
-    <!-- Dynamic Q&A -->
-    <div id="question-container"></div>
+    <!-- Slide indicator -->
+    <div id="stepper" class="muted"></div>
 
-    <!-- Controls -->
+    <!-- Slide content goes here -->
+    <form id="slideForm">
+      <div id="question-container"></div>
+    </form>
+
+    <!-- Buttons -->
     <div id="button-container">
-      <button id="nextBtn">Next</button>
+      <button id="backBtn" type="button">Back</button>
+      <div class="spacer"></div>
+      <button id="nextBtn" type="button">Next</button>
     </div>
 
-    <!-- Summary / warnings -->
+    <!-- Inline status / warnings -->
     <div id="output" class="hidden"></div>
 
-    <!-- Divider -->
-    <hr class="divider hidden" id="postIntakeDivider"/>
-
-    <!-- Post-intake actions -->
-    <div id="post-intake" class="hidden">
-      <div class="row">
-        <input id="tickerInput" placeholder="Ticker (e.g., AAPL)"/>
-        <button id="explainBtn">Explain</button>
-      </div>
-      <div id="explainResult" class="rec"></div>
+    <!-- Continue to dashboard (shown after final submit) -->
+    <div id="goDashRow" class="hidden">
+      <button id="goDashboardBtn" class="primary">Continue to Dashboard</button>
     </div>
   </div>
 
