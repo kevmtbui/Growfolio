@@ -1,173 +1,291 @@
-// ====== GrowFolio Popup (MV3) ======
-// Backend base
+// ====== GrowFolio Intake (3 slides, compact UI) ======
 const API_BASE = "http://localhost:8000";
 
-// Intake questions (extended to match backend risk/goal signals)
-const questions = [
-  { key: "age", text: "Hey there! How old are you?", type: "number", min: 0, max: 120 },
-  { key: "total_expenses", text: "Let’s get a sense of your spending.", subtext: "Total monthly expenses including rent, food, bills, subscriptions, and other stuff.", type: "number", min: 0 },
-  { key: "income", text: "How much do you bring home each month?", subtext: "Take-home income after taxes.", type: "number", min: 0 },
-  { key: "savings", text: "How much do you already have saved?", subtext: "Include bank accounts or investments.", type: "number", min: 0 },
-  { key: "dependents", text: "Any dependents relying on you financially?", subtext: "Family members, kids, or others you support.", type: "number", min: 0 },
-
-  // Goal & horizon
-  { key: "primary_goal", text: "What's your primary investment goal?", type: "select",
-    options: ["Retirement", "Short-term trading", "Supplemental Income"] },
-  { key: "horizon", text: "How long do you plan to keep this money invested?", type: "select",
-    options: ["<1 year", "1-3 years", "3-7 years", "7-15 years", "15+ years"] },
-
-  // Risk temperament
-  { key: "risk_scale", text: "Prefer steady growth or higher potential returns?", subtext: "1 = safety, 5 = more ups/downs", type: "number", min: 1, max: 5 },
-  { key: "drawdown_resp", text: "If your investment dropped 20% in a month, what would you do?", type: "select",
-    options: ["Sell everything", "Sell some", "Do nothing", "Buy more"] },
-
-  // Experience
-  { key: "experience", text: "How experienced are you with investing?", type: "select",
-    options: ["Beginner", "Intermediate", "Advanced"] }
+/**
+ * 3 slides mirroring your backend sections.
+ * Each question has a stable 'key' for storage. Types supported:
+ *  - int, float, dropdown, multiple_choice, slider, scale, categories
+ */
+const SLIDES = [
+  {
+    id: 1, title: "Financial Snapshot",
+    questions: [
+      { key:"income",  text:"Net monthly take-home (after taxes)", type:"float", min:0, sub:"e.g., 3200" },
+      { key:"expenses_breakdown", text:"Monthly expenses by category", type:"categories",
+        categories:["Housing","Groceries","Utilities","Transportation","Miscellaneous"] },
+      { key:"savings", text:"Current savings / investments", type:"float", min:0, sub:"bank + investments" },
+      { key:"debt_type", text:"Any debt / ongoing loan payments?", type:"multiple_choice",
+        options:["None","Credit cards","Student loans","Car loans","Other"] },
+      { key:"dependents", text:"How many dependents rely on you?", type:"int", min:0 },
+      { key:"age", text:"Your age", type:"int", min:0, max:120 }
+    ]
+  },
+  {
+    id: 2, title: "Investment Goals",
+    questions: [
+      { key:"primary_goal", text:"Primary investment goal", type:"multiple_choice",
+        options:["Retirement","Short-term trading","Supplemental Income"] },
+      { key:"horizon", text:"Planned investment horizon", type:"dropdown",
+        options:["<1 year","1-3 years","3-7 years","7-15 years","15+ years"] },
+      { key:"retire_age", text:"If retirement, at what age would you like to retire?", type:"int", min:18, max:120,
+        conditional:{ key:"primary_goal", equals:"Retirement" } },
+      { key:"invest_pct", text:"How much of your net savings are you willing to invest?", type:"slider", min:1, max:100 },
+      { key:"risk_scale", text:"Preference: steady vs. higher returns (1–5)", type:"scale", min:1, max:5 },
+      { key:"drawdown_resp", text:"If your investment dropped 20% in a month, what would you do?", type:"multiple_choice",
+        options:["Sell everything","Sell some","Do nothing","Buy more"] }
+    ]
+  },
+  {
+    id: 3, title: "Personal Profile",
+    questions: [
+      { key:"experience", text:"Investing experience", type:"multiple_choice",
+        options:["Beginner","Intermediate","Advanced"] },
+      { key:"news_freq", text:"How often do you check portfolio/news?", type:"multiple_choice",
+        options:["Daily","Weekly","Monthly","Rarely"] },
+      { key:"risk_statement", text:"Which best describes you?", type:"multiple_choice",
+        options:[
+          "I'd rather miss some gains than lose money.",
+          "I'm okay with short-term losses if I can earn more long-term.",
+          "I enjoy taking calculated risks."
+        ] },
+      { key:"portfolio_pref", text:"Portfolio should prioritize…", type:"multiple_choice",
+        options:["Safety & Stability","Balanced Growth","Aggressive Growth"] }
+    ]
+  }
 ];
 
-let currentQuestion = 0;
+let slideIndex = 0;
 let answers = {};
 let userProfile = null;
 
 // DOM
+const stepper = document.getElementById("stepper");
+const form = document.getElementById("slideForm");
 const container = document.getElementById("question-container");
+const backBtn = document.getElementById("backBtn");
 const nextBtn = document.getElementById("nextBtn");
 const output = document.getElementById("output");
-const divider = document.getElementById("postIntakeDivider");
-const postIntake = document.getElementById("post-intake");
-const tickerInput = document.getElementById("tickerInput");
-const explainBtn = document.getElementById("explainBtn");
-const explainResult = document.getElementById("explainResult");
+const goDashRow = document.getElementById("goDashRow");
+const goDashboardBtn = document.getElementById("goDashboardBtn");
 
-// inline helpers
-const errorEl = document.createElement("div");
-errorEl.id = "inlineError";
-errorEl.className = "muted";
-
-// Back button
-const buttonContainer = document.getElementById("button-container");
-const backBtn = document.createElement("button");
-backBtn.textContent = "Back";
-backBtn.type = "button";
-backBtn.style.background = "transparent";
-backBtn.style.border = "1px solid #c7c7c7";
-backBtn.style.borderRadius = "8px";
-backBtn.style.color = "inherit";
-backBtn.style.padding = "10px 12px";
-backBtn.style.cursor = "pointer";
-buttonContainer.insertBefore(backBtn, nextBtn);
-
-backBtn.addEventListener("click", () => {
-  if (currentQuestion > 0) {
-    currentQuestion--;
-    saveProgress();
-    showQuestion(currentQuestion, true);
-  }
+// Restore stored progress
+chrome.storage.local.get(["userData","currentSlide","userProfile"], (st) => {
+  if (st.userData) answers = st.userData;
+  if (Number.isInteger(st.currentSlide)) slideIndex = Math.min(st.currentSlide, SLIDES.length-1);
+  if (st.userProfile) userProfile = st.userProfile;
+  renderSlide();
+  updateStepper();
 });
 
-// Restore saved answers + progress + profile
-chrome.storage.local.get(["userData", "currentQuestion", "userProfile"], (result) => {
-  if (result.userData) answers = result.userData;
-  if (Number.isInteger(result.currentQuestion)) currentQuestion = Math.min(result.currentQuestion, questions.length);
-  if (result.userProfile) userProfile = result.userProfile;
-  showQuestion(currentQuestion, true);
+const fmt = (n) => Number(n).toLocaleString(undefined,{ maximumFractionDigits:2 });
+const num = (x) => { const n = Number(x); return Number.isFinite(n) ? n : 0; };
+function saveProgress(){ chrome.storage.local.set({ userData:answers, currentSlide:slideIndex }); }
+function updateStepper(){ stepper.textContent = `Step ${slideIndex+1} of ${SLIDES.length} — ${SLIDES[slideIndex].title}`; }
 
-  // If already completed earlier, show post-intake
-  if (currentQuestion >= questions.length) {
-    nextBtn.style.display = "none";
-    backBtn.style.display = "inline-block";
-    divider.classList.remove("hidden");
-    postIntake.classList.remove("hidden");
+// Render current slide
+function renderSlide(){
+  output.classList.add("hidden");
+  output.textContent = "";
+  goDashRow.classList.add("hidden");
+  container.innerHTML = "";
+
+  const s = SLIDES[slideIndex];
+
+  for (const q of s.questions){
+    // conditional question (retire_age)
+    if (q.conditional){
+      const dep = answers[q.conditional.key];
+      if (dep !== q.conditional.equals) continue;
+    }
+
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+    wrap.dataset.key = q.key;
+
+    // label
+    const label = document.createElement("label");
+    label.textContent = q.text;
+    wrap.appendChild(label);
+    if (q.sub){
+      const sm = document.createElement("small");
+      sm.textContent = q.sub;
+      wrap.appendChild(sm);
+    }
+
+    // control by type
+    if (q.type === "multiple_choice" || q.type === "dropdown"){
+      const sel = document.createElement("select");
+      sel.className = "q-input";
+      sel.name = q.key;
+      const def = document.createElement("option");
+      def.value = ""; def.textContent = "Select an option"; def.disabled = true; def.selected = true;
+      sel.appendChild(def);
+      for (const opt of q.options){
+        const o = document.createElement("option");
+        o.value = opt; o.textContent = opt;
+        sel.appendChild(o);
+      }
+      if (answers[q.key]) sel.value = String(answers[q.key]);
+      wrap.appendChild(sel);
+
+    } else if (q.type === "int" || q.type === "float"){
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.className = "q-input";
+      inp.name = q.key;
+      if (q.min !== undefined) inp.min = String(q.min);
+      if (q.max !== undefined) inp.max = String(q.max);
+      inp.step = (q.type === "int") ? "1" : "0.01";
+      inp.inputMode = "decimal";
+      if (answers[q.key] !== undefined) inp.value = String(answers[q.key]);
+      wrap.appendChild(inp);
+
+    } else if (q.type === "slider" || q.type === "scale"){
+      const min = q.min ?? 1, max = q.max ?? 5;
+      const rw = document.createElement("div");
+      rw.className = "range-wrap";
+      const rng = document.createElement("input");
+      rng.type = "range"; rng.min = String(min); rng.max = String(max); rng.step = "1";
+      rng.className = "q-input"; rng.name = q.key; rng.value = String(answers[q.key] ?? min);
+      const val = document.createElement("div");
+      val.className = "range-value";
+      const span = document.createElement("span");
+      span.id = `range-${q.key}`; span.textContent = String(rng.value);
+      val.appendChild(span);
+      if (q.type === "slider"){ val.innerHTML += "%"; val.insertBefore(span, val.firstChild); }
+      rng.addEventListener("input", () => { span.textContent = String(rng.value); });
+      rw.appendChild(rng); rw.appendChild(val);
+      wrap.appendChild(rw);
+
+    } else if (q.type === "categories"){
+      const cats = q.categories || [];
+      const grid = document.createElement("div");
+      grid.className = "categories"; grid.id = `categories-${q.key}`;
+      const saved = answers[q.key] || {};
+      for (const c of cats){
+        const rowLabel = document.createElement("label");
+        rowLabel.textContent = c; rowLabel.className = "cat-label";
+        const rowInput = document.createElement("input");
+        rowInput.type = "number"; rowInput.className = "cat-input";
+        rowInput.name = `${q.key}:${c}`; rowInput.min = "0"; rowInput.step = "0.01"; rowInput.inputMode = "decimal";
+        if (saved && saved[c] !== undefined) rowInput.value = String(saved[c]);
+        grid.appendChild(rowLabel);
+        grid.appendChild(rowInput);
+      }
+      const total = document.createElement("div");
+      total.className = "cat-total";
+      total.innerHTML = `<strong>Total:</strong> $<span id="cat-total-${q.key}">0.00</span>/mo`;
+      grid.addEventListener("input", () => updateCategoriesTotal(q.key));
+      wrap.appendChild(grid);
+      wrap.appendChild(total);
+      // initialize
+      updateCategoriesTotal(q.key);
+    }
+
+    container.appendChild(wrap);
   }
-});
 
-function sanitizeNumber(x) {
-  const n = Number(x);
-  return Number.isFinite(n) ? n : 0;
-}
-function saveProgress() {
-  chrome.storage.local.set({ userData: answers, currentQuestion });
-}
+  // buttons state
+  backBtn.style.visibility = (slideIndex === 0) ? "hidden" : "visible";
+  nextBtn.textContent = (slideIndex === SLIDES.length - 1) ? "Finish" : "Next";
+  updateStepper();
 
-function progressMarkup(i) {
-  return `<div class="muted" style="margin-bottom:6px;">Question ${i + 1} / ${questions.length}</div>`;
+  // Enter to submit
+  form.onkeydown = (e) => {
+    if (e.key === "Enter") { e.preventDefault(); nextBtn.click(); }
+  };
 }
 
-function showQuestion(index, prefill = false) {
-  errorEl.textContent = "";
+// categories total helper
+function updateCategoriesTotal(key){
+  const grid = document.getElementById(`categories-${key}`);
+  if (!grid) return;
+  let sum = 0;
+  grid.querySelectorAll(".cat-input").forEach(inp => sum += num(inp.value));
+  const span = document.getElementById(`cat-total-${key}`);
+  if (span) span.textContent = fmt(sum);
+}
 
-  if (index >= questions.length) {
-    container.innerHTML = `<p>All questions completed!</p>`;
-    nextBtn.style.display = "none";
-    backBtn.style.display = "inline-block";
-    calculateRisk();     // compute + show guardrails
-    createProfile();     // call backend to build Gemini profile
-    divider.classList.remove("hidden");
-    postIntake.classList.remove("hidden");
-    return;
+// validation & collect
+function validateAndCollect(){
+  const s = SLIDES[slideIndex];
+  const fields = container.querySelectorAll(".field");
+
+  for (const field of fields){
+    const key = field.dataset.key;
+    const def = s.questions.find(q => q.key === key) || SLIDES.flatMap(x=>x.questions).find(q=>q.key===key);
+    if (!def) continue;
+
+    if (def.type === "categories"){
+      const grid = field.querySelector(".categories");
+      const inputs = grid.querySelectorAll(".cat-input");
+      const obj = {}; let hasValue = false;
+      for (const inp of inputs){
+        const name = inp.name.split(":")[1];
+        const v = num(inp.value);
+        if (v < 0) return { ok:false, msg:"Values can’t be negative." };
+        obj[name] = v;
+        if (v) hasValue = true;
+      }
+      if (!hasValue) return { ok:false, msg:"Enter at least one category amount." };
+      answers[def.key] = obj;
+      // update total_expenses for risk math
+      const total = Object.values(obj).reduce((a,b)=>a+Number(b||0),0);
+      answers["total_expenses"] = total;
+      continue;
+    }
+
+    const el = field.querySelector(".q-input, select, input[type='number']");
+    if (!el) continue;
+
+    if (def.type === "multiple_choice" || def.type === "dropdown"){
+      if (!el.value) return { ok:false, msg:"Please select an option." };
+      answers[def.key] = el.value;
+
+    } else if (def.type === "int" || def.type === "float"){
+      if (el.value === "") return { ok:false, msg:"This field is required." };
+      const v = num(el.value);
+      if (!Number.isFinite(v)) return { ok:false, msg:"Please enter a valid number." };
+      if (def.min !== undefined && v < def.min) return { ok:false, msg:`Value must be ≥ ${def.min}.` };
+      if (def.max !== undefined && v > def.max) return { ok:false, msg:`Value must be ≤ ${def.max}.` };
+      if (def.type === "int" && !Number.isInteger(v)) return { ok:false, msg:"Please enter a whole number." };
+      answers[def.key] = v;
+
+    } else if (def.type === "slider" || def.type === "scale"){
+      const min = def.min ?? 1, max = def.max ?? 5;
+      const v = num(el.value);
+      if (v < min || v > max) return { ok:false, msg:`Value must be between ${min} and ${max}.` };
+      answers[def.key] = v;
+    }
   }
 
-  const q = questions[index];
-  let html = "";
-  html += progressMarkup(index);
-  html += `<label>${q.text}</label>`;
-  if (q.subtext) html += `<small>${q.subtext}</small>`;
-
-  if (q.type === "select") {
-    const opts = q.options.map(opt => `<option value="${opt}">${opt}</option>`).join("");
-    html += `
-      <select id="answerInput" required>
-        <option value="" disabled selected>Select an option</option>
-        ${opts}
-      </select>
-    `;
-  } else {
-    html += `
-      <input type="${q.type}" id="answerInput" required
-        ${q.min !== undefined ? `min="${q.min}"` : ""}
-        ${q.max !== undefined ? `max="${q.max}"` : ""}
-        inputmode="decimal" autocomplete="off">
-    `;
-  }
-
-  container.innerHTML = html;
-  container.appendChild(errorEl);
-
-  const inputEl = document.getElementById("answerInput");
-  if (prefill && answers[q.key] !== undefined && inputEl) inputEl.value = String(answers[q.key]);
-  if (inputEl) {
-    inputEl.focus();
-    inputEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") { e.preventDefault(); nextBtn.click(); }
-    });
-  }
-
-  backBtn.style.display = index > 0 ? "inline-block" : "none";
-  nextBtn.style.display = "inline-block";
+  return { ok:true };
 }
 
-function validateAnswer(q, valRaw) {
-  if (q.type === "select") return valRaw ? null : "Please select an option.";
-  if (valRaw === "" || valRaw === null || valRaw === undefined) return "This field is required.";
-  const n = sanitizeNumber(valRaw);
-  if (!Number.isFinite(n)) return "Please enter a valid number.";
-  if (q.min !== undefined && n < q.min) return `Value must be ≥ ${q.min}.`;
-  if (q.max !== undefined && n > q.max) return `Value must be ≤ ${q.max}.`;
-  return null;
+function showError(msg){
+  output.textContent = msg;
+  output.classList.add("error");
+  output.classList.remove("hidden");
+}
+function clearError(){
+  output.textContent = "";
+  output.classList.add("hidden");
+  output.classList.remove("error");
 }
 
-function calculateRisk() {
-  const income = sanitizeNumber(answers["income"]);
-  const expenses = sanitizeNumber(answers["total_expenses"]);
-  const savings = sanitizeNumber(answers["savings"]);
-  const age = sanitizeNumber(answers["age"]);
-  const dependents = sanitizeNumber(answers["dependents"]);
+// Risk summary
+function computeRisk(){
+  const income = num(answers["income"]);
+  const expenses = num(answers["total_expenses"]);
+  const savings = num(answers["savings"]);
+  const age = num(answers["age"]);
+  const dependents = num(answers["dependents"]);
+  const riskScale = num(answers["risk_scale"]);
 
   const investable = Math.max(0, income - expenses);
-  const runwayMonths = savings / Math.max(1, expenses || 1);
-  let risk = 5;
+  const runway = savings / Math.max(1, expenses || 1);
 
+  let risk = 5;
   if (income > expenses * 1.25) risk += 1;
   if (income > expenses * 1.5) risk += 1;
   if (expenses > income * 0.7) risk -= 1;
@@ -175,120 +293,81 @@ function calculateRisk() {
   if (dependents >= 1) risk -= Math.min(2, dependents);
   if (age <= 25) risk += 1;
   if (age >= 55) risk -= 1;
-  if (runwayMonths >= 6) risk += 1; else if (runwayMonths < 3) risk -= 2;
-
-  // temperament signals
-  const riskScale = sanitizeNumber(answers["risk_scale"]);
   if (riskScale >= 4) risk += 1;
   if (riskScale <= 2) risk -= 1;
+  if (runway >= 6) risk += 1; else if (runway < 3) risk -= 2;
 
   risk = Math.max(1, Math.min(10, Math.round(risk)));
-
   const caps = { 1:0.1, 2:0.15, 3:0.2, 4:0.25, 5:0.35, 6:0.45, 7:0.55, 8:0.65, 9:0.75, 10:0.85 };
   const cap = caps[risk] ?? 0.35;
   const suggested = investable * cap;
 
   const warnings = [];
   if (investable <= 0) warnings.push("Your expenses are equal to or higher than income — consider pausing investing until cash flow is positive.");
-  if (runwayMonths < 3) warnings.push(`Emergency fund is low (~${runwayMonths.toFixed(1)} months). Aim for 3–6 months before taking higher risk.`);
+  if (runway < 3) warnings.push(`Emergency fund is low (~${runway.toFixed(1)} months). Aim for 3–6 months before taking higher risk.`);
 
   let msg = `<strong>Risk level:</strong> ${risk}/10<br>`;
-  msg += `<strong>Investable (monthly):</strong> $${investable.toLocaleString(undefined,{maximumFractionDigits:2})}<br>`;
-  msg += `<strong>Suggested allocation cap:</strong> $${suggested.toLocaleString(undefined,{maximumFractionDigits:2})} (${Math.round(cap*100)}%)<br>`;
-  if (warnings.length) { msg += `<br><em>${warnings.join(" ")}</em>`; output.classList.add("error"); }
-  else { output.classList.remove("error"); }
-
+  msg += `<strong>Investable (monthly):</strong> $${fmt(investable)}<br>`;
+  msg += `<strong>Suggested allocation cap:</strong> $${fmt(suggested)} (${Math.round(cap*100)}%)<br>`;
+  if (warnings.length){
+    msg += `<br><em>${warnings.join(" ")}</em>`;
+    output.classList.add("error");
+  } else {
+    output.classList.remove("error");
+  }
   output.innerHTML = msg;
   output.classList.remove("hidden");
 
-  chrome.storage.local.set({ userData: answers, recommendedRisk: risk, investable, suggested });
+  chrome.storage.local.set({ userData:answers, recommendedRisk:risk, investable, suggested });
 }
 
-async function createProfile() {
-  try {
+// Create profile (Gemini)
+async function createProfile(){
+  try{
     const resp = await fetch(`${API_BASE}/create_profile`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method:"POST", headers:{ "Content-Type":"application/json" },
       body: JSON.stringify(answers)
     });
     const data = await resp.json();
     userProfile = data.user_profile || null;
     chrome.storage.local.set({ userProfile });
-
-    // Show a brief status line in the output box
-    const note = userProfile ? "Profile created via Gemini ✓" : "Profile creation returned no data.";
-    output.innerHTML += `<br><span class="muted">${note}</span>`;
-  } catch (e) {
+    output.innerHTML += `<br><span class="muted">${userProfile ? "Profile created via Gemini ✓" : "Profile creation returned no data."}</span>`;
+  }catch(e){
     output.innerHTML += `<br><span class="muted">Profile error: ${String(e)}</span>`;
   }
 }
 
-function renderExplanation(res) {
-  const { stock, ml_output, gemini_explanation } = res || {};
-  return `
-    <strong>${stock || "(no ticker)"}:</strong>
-    <div class="muted">ML: ${ml_output ? JSON.stringify(ml_output) : "n/a"}</div>
-    <p>${gemini_explanation || "No explanation returned."}</p>
-  `;
-}
+/* Buttons */
+backBtn.addEventListener("click", () => {
+  if (slideIndex === 0) return;
+  clearError();
+  slideIndex -= 1;
+  saveProgress();
+  renderSlide();
+});
 
-explainBtn.addEventListener("click", async () => {
-  explainResult.innerHTML = "Thinking…";
-  const ticker = (tickerInput.value || "").toUpperCase().trim();
-  if (!ticker) { explainResult.innerHTML = "Please enter a ticker (e.g., AAPL)."; return; }
-  if (!userProfile) {
-    // attempt lazy fetch from storage if popup reloaded
-    const s = await chrome.storage.local.get(["userProfile"]);
-    userProfile = s.userProfile || null;
-  }
-  if (!userProfile) {
-    explainResult.innerHTML = "User profile not ready yet. Complete intake first.";
+nextBtn.addEventListener("click", async () => {
+  clearError();
+  const res = validateAndCollect();
+  if (!res.ok){ showError(res.msg); return; }
+
+  saveProgress();
+
+  // Last slide -> finish
+  if (slideIndex === SLIDES.length - 1){
+    computeRisk();
+    await createProfile();
+    goDashRow.classList.remove("hidden");
+    nextBtn.textContent = "Done";
+    nextBtn.disabled = true;
     return;
   }
 
-  try {
-    const resp = await fetch(`${API_BASE}/recommend_stock`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        stock_name: ticker,
-        user_profile: userProfile,
-        ml_output: { confidence: 80, action: "buy" } // placeholder for now
-      })
-    });
-    const data = await resp.json();
-    if (data.error) {
-      explainResult.innerHTML = `Error: ${data.error}`;
-    } else {
-      explainResult.innerHTML = renderExplanation(data);
-    }
-  } catch (e) {
-    explainResult.innerHTML = `Request failed: ${String(e)}`;
-  }
+  // Move to next
+  slideIndex += 1;
+  renderSlide();
 });
 
-// Next (save & advance)
-nextBtn.addEventListener("click", () => {
-  const q = questions[currentQuestion];
-  const inputElement = document.getElementById("answerInput");
-  if (!q || !inputElement) return;
-
-  const raw = (q.type === "select") ? inputElement.value : inputElement.value.trim();
-  const err = validateAnswer(q, raw);
-  if (err) { errorEl.textContent = err; inputElement.after(errorEl); inputElement.focus(); return; }
-
-  answers[q.key] = (q.type === "number") ? sanitizeNumber(raw) : raw;
-  currentQuestion++;
-  saveProgress();
-  showQuestion(currentQuestion);
-});
-
-// Keyboard quick nav
-window.addEventListener("keydown", (e) => {
-  if (e.altKey && e.key === "ArrowLeft" && currentQuestion > 0) {
-    e.preventDefault(); currentQuestion--; saveProgress(); showQuestion(currentQuestion, true);
-  }
-  if (e.altKey && e.key === "ArrowRight" && currentQuestion < questions.length) {
-    e.preventDefault(); nextBtn.click();
-  }
+goDashboardBtn.addEventListener("click", () => {
+  window.location.href = "dashboard.html";
 });
