@@ -34,15 +34,15 @@ Growfolio bridges that gap by providing personalized stock recommendations, expl
 
 ## Core Features (MVP)
 
-| Feature | Description | Priority |
+| Feature | Description |
 |----------|--------------|----------|
-| Smart Financial Intake | Collects income, rent, and spending data | High |
-| Risk and Literacy Quiz | Determines user confidence and tolerance | High |
-| AI Stock Recommender | Suggests stocks matched to user risk and goals | High |
-| Decision Support Summaries | Explains why each stock was chosen | High |
-| Manual Ticker Analysis | Lets users query any stock for AI insights | Medium |
-| Chrome Extension UI | Dashboard for financial tools | High |
-| Auto-Trading (Stretch) | Wealthsimple API integration | Low |
+| Smart Financial Intake | Collects income, rent, and spending data |
+| Risk and Literacy Quiz | Determines user confidence and tolerance | 
+| AI Stock Recommender | Suggests stocks matched to user risk and goals |
+| Decision Support Summaries | Explains why each stock was chosen |
+| Manual Ticker Analysis | Lets users query any stock for AI insights |
+| Chrome Extension UI | Dashboard for financial tools |
+| Auto-Trading (Stretch) | Wealthsimple API integration |
 
 ---
 
@@ -88,19 +88,6 @@ Gemini explains: Apple’s cash flow resilience aligns with your goal to save sa
 
 ---
 
-## Hackathon Prize Fit
-
-| Category | Qualification |
-|-----------|----------------|
-| Finance & Fintech | Personalized AI robo-trader |
-| Personal Wellness | Promotes financial wellbeing |
-| Best Use of Gemini API | Uses Gemini for reasoning and insights |
-| DigitalOcean Gradient | Host ML model inference |
-| Snowflake API | Store anonymized financial data |
-| ElevenLabs Voice (Stretch) | Voice summaries of portfolio |
-
----
-
 ## User Flow
 
 1. Install Growfolio Chrome extension  
@@ -120,20 +107,7 @@ Gemini explains: Apple’s cash flow resilience aligns with your goal to save sa
 - Works offline with mock data  
 - Stretch: Wealthsimple or voice integration  
 
----
-
-## 24-Hour Development Plan
-
-| Time | Task | Owner |
-|------|------|--------|
-| 0–2 hrs | Wireframe and UI design | Frontend |
-| 2–6 hrs | Chrome extension setup and local data | Frontend |
-| 6–10 hrs | ML model training and stock API integration | Backend/ML |
-| 10–16 hrs | Gemini API integration | AI Lead |
-| 16–20 hrs | Connect layers and polish UI | Full stack |
-| 20–24 hrs | Demo video and final documentation | All |
-
----
+--
 
 ## Run Locally
 
