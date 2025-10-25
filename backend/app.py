@@ -65,9 +65,6 @@ QUESTION_SECTIONS = [
 
 
 @app.get("/get_question_sections")
-def root():
-    return {"status": "Backend running"}
-
 async def get_question_sections():
     """
     Returns all question sections as JSON
