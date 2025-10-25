@@ -65,6 +65,7 @@ financial advice, as it can have a large impact on their lives. As a top financi
 
 
 
+
 Generate a structured JSON profile with keys:
 - disposable_income
 - risk_tolerance
