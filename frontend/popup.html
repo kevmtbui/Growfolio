@@ -1,18 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Growfolio Demo</title>
-    <link rel="stylesheet" href="popup.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GrowFolio - Risk Intake</title>
+  <link rel="stylesheet" href="popup.css"/>
 </head>
 <body>
-    <h2>Growfolio</h2>
-    <p>Enter your risk level (1–10):</p>
-    <input type="number" id="riskLevel" min="1" max="10">
-    <button id="saveBtn">Save</button>
+  <div id="popup-wrapper">
+    <!-- Logo -->
+    <div id="logo-container">
+      <img src="assets/logo.png" alt="GrowFolio Logo" id="logo"/>
+    </div>
 
-    <p id="output"></p>
+    <!-- Dynamic Q&A -->
+    <div id="question-container"></div>
 
-    <script src="popup.js"></script>
+    <!-- Controls -->
+    <div id="button-container">
+      <button id="nextBtn">Next</button>
+    </div>
+
+    <!-- Summary / warnings -->
+    <div id="output" class="hidden"></div>
+
+    <!-- Divider -->
+    <hr class="divider hidden" id="postIntakeDivider"/>
+
+    <!-- Post-intake actions -->
+    <div id="post-intake" class="hidden">
+      <div class="row">
+        <input id="tickerInput" placeholder="Ticker (e.g., AAPL)"/>
+        <button id="explainBtn">Explain</button>
+      </div>
+      <div id="explainResult" class="rec"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>
