@@ -39,8 +39,8 @@ QUESTION_SECTIONS = [
              "options": ["<1 year", "1-3 years", "3-7 years", "7-15 years", "15+ years"]},
             {"id": 9, "text": "If retirement, at what age would you like to retire?", "type": "int"},
             {"id": 10, "text": "How much of your net savings are you willing to invest?", "type": "slider", "min": 1, "max": 100},
-            {"id": 11, "text": "Would you prefer steady growth or higher potential returns even if it means more ups and downs?", "type": "scale", "min": 1, "max": 5},
-            {"id": 12, "text": "If your investment dropped 20% in one month, what would you most likely do?", "type": "multiple_choice",
+            {"id": 11, "text": "Would you prefer steady growth or higher potential returns (which results in more ups and downs)?", "type": "scale", "min": 1, "max": 5},
+            {"id": 12, "text": "If your investment dropped 20$ one month, what would you most likely do?", "type": "multiple_choice",
              "options": ["Sell everything", "Sell some", "Do nothing", "Buy more"]}
         ]
     },
