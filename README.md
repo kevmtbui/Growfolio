@@ -46,43 +46,11 @@ Growfolio is a Chrome extension that provides personalized investment recommenda
    - Select "Download ZIP"
    - Extract the ZIP file to a folder on your computer
 
-### Step 2: Set Up the Backend (Required)
+### Step 2: Verify Backend Connection (Optional)
 
-The extension needs a backend server running to work properly.
+The extension connects to a backend server hosted on Railway. The backend is already configured and running, so you don't need to set it up yourself.
 
-#### Quick Setup:
-```bash
-# Navigate to the project folder
-cd Growfolio
-
-# Install Python dependencies
-pip install -r backend/requirements.txt
-
-# Create environment file
-# On Windows (Command Prompt):
-copy backend\.env.example backend\.env
-
-# On Mac/Linux:
-cp backend/.env.example backend/.env
-```
-
-#### Add Your API Keys:
-1. Open `backend/.env` in a text editor
-2. Get a free Gemini API key from: https://makersuite.google.com/app/apikey
-3. Get a free Finnhub API key from: https://finnhub.io/
-4. Add your keys to `.env`:
-   ```
-   GEMINI_API_KEY=your_actual_gemini_api_key_here
-   FINNHUB_API_KEY=your_finnhub_api_key_here
-   ```
-
-#### Start the Backend Server:
-```bash
-cd backend
-python -m uvicorn app:app --host 0.0.0.0 --port 8000
-```
-
-Keep this terminal open - the extension won't work without the backend running.
+**For development/testing purposes only**, if you want to run the backend locally:
 
 ### Step 3: Install the Chrome Extension
 
@@ -130,14 +98,14 @@ Keep this terminal open - the extension won't work without the backend running.
 - Try reloading the extension (click the refresh icon on the extension card)
 
 ### Backend Connection Failed?
-- Verify the backend server is running on port 8000
-- Check that `http://localhost:8000` is accessible in your browser
-- Make sure no firewall is blocking the connection
+- The backend is hosted on Railway and should be accessible automatically
+- If you see connection errors, check your internet connection
+- The extension will automatically retry failed requests
 
 ### No Recommendations Showing?
-- Check that your API keys are correctly set in `backend/.env`
-- Verify the backend server is running without errors
+- Complete all questionnaire steps before proceeding
 - Check the browser console (F12) for any error messages
+- Make sure you're connected to the internet
 
 ## Project Structure
 
@@ -192,36 +160,24 @@ Results are shown in an easy-to-understand dashboard with:
 - Recommendation cards with detailed rationale
 - Export functionality
 
-## API Keys Required
+## Backend Configuration
 
-### Free Tier Available
-
-Both API keys have free tiers sufficient for personal use:
-
-1. **Gemini API** (Required)
-   - Website: https://makersuite.google.com/app/apikey
-   - Free tier: 15 requests per minute
-   - Required for AI explanations
-
-2. **Finnhub API** (Optional)
-   - Website: https://finnhub.io/
-   - Free tier: 60 API calls/minute
-   - Required for live stock prices
-   - Without this key, the extension uses placeholder data
+The backend is hosted on Railway and already configured with all necessary API keys. Users don't need to configure anything - just install the extension and start using it!
 
 ## Development
 
+For developers who want to modify the code:
+
 ### Running the Backend Locally
-```bash
-cd backend
-python -m uvicorn app:app --reload
-```
+1. Install dependencies: `pip install -r backend/requirements.txt`
+2. Set up environment variables in `backend/.env`
+3. Run: `cd backend && python -m uvicorn app:app --reload`
 
 ### Testing the Extension
-1. Start the backend server
-2. Load the extension in Chrome
-3. Complete the questionnaire
-4. Check browser console (F12) for any errors
+1. Load the extension in Chrome (Developer mode)
+2. Complete the questionnaire
+3. Check browser console (F12) for any errors
+4. The extension connects to Railway backend by default
 
 ## Technologies Used
 
