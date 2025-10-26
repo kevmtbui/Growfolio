@@ -188,30 +188,64 @@ async function renderRetirementInvestorContent(analysisData, userProfile) {
     `;
 
   } else if (analysisData?.analysis?.asset_allocation) {
-    // Fallback to basic allocation format
+    // Fallback to basic allocation format - show individual ETF recommendations
     const allocation = analysisData.analysis.asset_allocation;
-
+    
+    // Extract all ETF recommendations from the allocation
+    const allRecommendations = [];
     Object.entries(allocation).forEach(([assetClass, data]) => {
+      if (data.recommendations && Array.isArray(data.recommendations)) {
+        // Split the percentage equally among recommendations in this asset class
+        const percentPerETF = data.percentage / data.recommendations.length;
+        
+        data.recommendations.forEach(rec => {
+          // Extract ticker from recommendation (e.g., "VTI (Vanguard...)" -> "VTI")
+          const ticker = rec.split(' ')[0].replace(/[()]/g, '');
+          allRecommendations.push({
+            ticker: ticker,
+            name: rec,
+            assetClass: assetClass,
+            percentage: percentPerETF
+          });
+        });
+      }
+    });
+    
+    // Get explanations for each ETF
+    for (const rec of allRecommendations) {
+      const explanation = await explain(rec.ticker, userProfile);
+      const rationale = explanation || `${rec.assetClass} allocation for diversification and ${rec.assetClass === 'stocks' ? 'growth' : 'stability'}.`;
+      
       const card = document.createElement("div");
       card.className = "rec";
       card.innerHTML = `
         <div class="top">
           <div>
-            <div class="ticker">${assetClass.toUpperCase()}</div>
-            <div class="percentage">${data.percentage}%</div>
+            <div class="ticker">${rec.ticker}</div>
+            <div class="percentage">${rec.assetClass.toUpperCase()}</div>
           </div>
-          <div class="conf">Allocation</div>
+          <div class="conf">${rec.percentage}% allocation</div>
         </div>
-        <p class="muted">Recommended: ${data.recommendations.join(", ")}</p>
+        <p class="muted"><strong>${rec.name.split('(')[0].trim()}</strong></p>
+        <p class="muted">${rationale}</p>
       `;
       recsList.appendChild(card);
-    });
+    }
+
+    // Clean up rationale text - remove JSON formatting and extract key points
+    let cleanRationale = analysisData.analysis.rationale || "Balanced allocation based on your risk profile and investment horizon.";
+    
+    // Remove JSON blocks
+    cleanRationale = cleanRationale.replace(/```json[\s\S]*?```/g, '');
+    cleanRationale = cleanRationale.replace(/```[\s\S]*?```/g, '');
+    
+    // Extract first 3 sentences or key points
+    const sentences = cleanRationale.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    const summary = sentences.slice(0, 3).join('. ').trim() + (sentences.length > 0 ? '.' : '');
 
     insight.innerHTML = `
-      <strong>Portfolio Rationale:</strong><br>
-      ${analysisData.analysis.rationale || "Balanced allocation based on your risk profile and investment horizon."}<br><br>
-      <strong>Rebalancing:</strong> ${analysisData.analysis.rebalancing || "Annual rebalancing recommended"}<br>
-      <strong>Risk Notes:</strong> ${analysisData.analysis.risk_notes || "Monitor quarterly and adjust based on market conditions"}
+      <strong>Portfolio Strategy:</strong><br>
+      ${summary || "Diversified allocation designed for long-term growth while managing risk through balanced exposure across asset classes."}
     `;
   } else {
     // No analysis data available

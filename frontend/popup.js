@@ -417,13 +417,11 @@ async function createProfile() {
       isAdvancedProfile: !!userProfile && !data.error
     });
 
-    output.innerHTML += `<br><span class="muted">Profile created via Gemini ✓</span>`;
-    output.innerHTML += `<br><span class="muted">Analysis: ${traderType} ✓</span>`;
-    if (userProfile && !data.error) {
-      output.innerHTML += `<br><span class="muted">Advanced portfolio system enabled ✓</span>`;
-    }
+    // Success - data is stored, will navigate to dashboard
+    return true;
   } catch (e) {
-    output.innerHTML += `<br><span class="muted">Profile error: ${String(e)}</span>`;
+    console.error("Profile creation error:", e);
+    throw e; // Re-throw to handle in the caller
   }
 }
 
@@ -473,11 +471,52 @@ nextBtn.addEventListener("click", async () => {
 
   // Last slide -> finish
   if (slideIndex === SLIDES.length - 1) {
-    computeRisk();
-    await createProfile();
-    goDashRow.classList.remove("hidden");
-    nextBtn.textContent = "Done";
+    // Show loading state
     nextBtn.disabled = true;
+    nextBtn.textContent = "Processing...";
+    container.innerHTML = "";
+    output.innerHTML = `
+      <div style="text-align: center; padding: 60px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 72px; margin-bottom: 30px;">⏳</div>
+        <h2 style="margin-bottom: 15px; font-size: 20px;">Analyzing Your Profile</h2>
+        <p class="muted" style="font-size: 14px; margin-bottom: 30px;">Gemini AI is creating your personalized investment recommendations<span class="loading-dots-text"></span></p>
+      </div>
+    `;
+    output.classList.remove("hidden");
+    
+    // Animate loading dots
+    const dotsElement = output.querySelector('.loading-dots-text');
+    let dotCount = 0;
+    const dotsInterval = setInterval(() => {
+      dotCount = (dotCount + 1) % 4;
+      dotsElement.textContent = '.'.repeat(dotCount);
+    }, 500);
+    
+    // Compute risk and create profile
+    try {
+      computeRisk();
+      await createProfile();
+      
+      // Clear the dots animation
+      clearInterval(dotsInterval);
+      
+      // Navigate directly to dashboard when complete
+      window.location.href = "dashboard.html";
+    } catch (e) {
+      // Clear the dots animation on error
+      clearInterval(dotsInterval);
+      // Show error if profile creation fails
+      output.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+          <h3 style="margin-bottom: 10px; color: #9e1c1c;">Error Creating Profile</h3>
+          <p class="muted">${String(e)}</p>
+          <button onclick="location.reload()" style="margin-top: 20px; padding: 8px 16px; background: var(--brand); color: white; border: none; border-radius: 8px; cursor: pointer;">Try Again</button>
+        </div>
+      `;
+      nextBtn.disabled = false;
+      nextBtn.textContent = "Finish";
+    }
     return;
   }
 
