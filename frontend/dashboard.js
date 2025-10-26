@@ -59,11 +59,101 @@ const riskName = (r) => {
     await exportToPDF();
   });
 
+  // Refresh button
+  $("btnRefresh").addEventListener("click", async () => {
+    await refreshRecommendations();
+  });
+
   // Back button
   $("btnSettings").addEventListener("click", () => {
     window.location.href = "popup.html";
   });
 })();
+
+async function refreshRecommendations() {
+  try {
+    // Get stored user data
+    const { userData, userProfile, traderType } = await chrome.storage.local.get([
+      "userData", "userProfile", "traderType"
+    ]);
+
+    if (!userData || !userProfile || !traderType) {
+      alert("No profile data found. Please complete the onboarding first.");
+      return;
+    }
+
+    // Show loading state
+    const insight = $("insight");
+    const recsList = $("recsList");
+    const btnRefresh = $("btnRefresh");
+    
+    btnRefresh.disabled = true;
+    btnRefresh.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+        <path d="M21 3v5h-5"/>
+        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+        <path d="M3 21v-5h5"/>
+      </svg>
+      Refreshing...
+    `;
+    
+    insight.textContent = "Refreshing analysis...";
+    recsList.innerHTML = '<div style="text-align: center; padding: 20px;">Loading updated recommendations...</div>';
+
+    // Call backend to get fresh analysis
+    const response = await fetch(`${API_BASE}/analyze_trader_type`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_data: userData,
+        user_profile: userProfile,
+        trader_type: traderType
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const analysisData = await response.json();
+    
+    // Store updated analysis
+    await chrome.storage.local.set({ analysisData });
+    
+    // Re-render content
+    await renderTraderSpecificContent(traderType, analysisData, userProfile);
+    
+    // Reset button
+    btnRefresh.disabled = false;
+    btnRefresh.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+        <path d="M21 3v5h-5"/>
+        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+        <path d="M3 21v-5h5"/>
+      </svg>
+      Refresh
+    `;
+    
+  } catch (error) {
+    console.error('Refresh failed:', error);
+    alert(`Failed to refresh recommendations: ${error.message}`);
+    
+    // Reset button on error
+    const btnRefresh = $("btnRefresh");
+    btnRefresh.disabled = false;
+    btnRefresh.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+        <path d="M21 3v5h-5"/>
+        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+        <path d="M3 21v-5h5"/>
+      </svg>
+      Refresh
+    `;
+  }
+}
 
 async function exportToPDF() {
   try {
