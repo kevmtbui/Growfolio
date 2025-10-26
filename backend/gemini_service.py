@@ -49,7 +49,7 @@ def _parse_horizon_years(user):
 
 def risk_assesment_score(user: dict) -> float:
     """
-    Computes a 1–10 risk score with 0.1 precision based on your questionnaire.
+    Computes a 1-10 risk score with 0.1 precision based on your questionnaire.
     Keys used (by your current PRD numbering):
       1 income (net monthly), 2 expenses (dict), 3 savings, 4 debt (text/flag),
       5 dependents, 6 age, 7 goal, 8 horizon bucket, 9 retirement age,
@@ -186,7 +186,6 @@ def create_user_profile(user_data: dict) -> dict:
     financial advice, as it can have a large impact on their lives. As a top financial advisor, it's essential to not only provide advice, but to teach individuals and improve their financial literacy. The analysis 
     should be succint, detailed, and understandable for an individual with modterate to low financial literacy. The output file should stricly be a working/functioning JSON file. If the user's income - expenses is negative, if they have 0 savings, 
     or if they are aged >=60 and want to keep their money invested for 15+ years, then invevsting is not ideal.  
-    investing is not ideal.
 
     Also utlilze the user's risk assesment score: {riskScore}, which is a 1-10 risk score with 0.1 precision based on the questionnaire.
     """  
@@ -213,7 +212,17 @@ def create_retirement_portfolio(user_profile: dict) -> dict:
     income = user_profile.get("income", 0)
     expenses = user_profile.get("expenses", 0)
     
-    prompt = f"""Create a retirement portfolio allocation for a client with the following profile:
+    prompt = f"""You are a seasoned financial advisor of 20+ years at a large Canadian bank. As a financial advisor, you are well-versed in investing, and offering people options to grow their portfolios. 
+    You also understand when someone is at financial risk, and advise them with safe options to do so. As a top financial advisor, you are in charge of receiving and analyzing detailed financial questionaire forms from users.
+    These forms contain a variety of financial information relating to the individual, their financial standing, and their interest in investing. You are in charge of analyzing these users, and determining how they should invest. 
+    As a financial advisor, you are responsible for offering these users accurate financial advice, as it can have a large impact on their lives. As a top financial advisor, it's essential to not only provide advice, but to 
+    teach individuals and improve their financial literacy. The analysis should be succint, detailed, and understandable for an individual with modterate to low financial literacy. 
+    Your explanations should teach/explain to users about potential investments they can make.
+    
+    TASK:
+    Create a retirement portfolio allocation for a client with the following profile:
+
+    
 Age: {age}, Investment Horizon: {horizon_years} years, Risk Score: {risk_score}/10, Monthly Income: ${income}, Monthly Expenses: ${expenses}
 
 Respond ONLY with valid JSON in this exact format (no markdown, no explanations outside the JSON):
