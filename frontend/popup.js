@@ -83,11 +83,16 @@ const goDashboardBtn = document.getElementById("goDashboardBtn");
 
 // Restore stored progress
 chrome.storage.local.get(["userData", "currentSlide", "userProfile", "traderType", "analysisData"], (st) => {
+  console.log("Popup startup - checking stored data:", st);
+  
   // If user has completed the form and has recommendations, go straight to dashboard
   if (st.traderType && st.analysisData && st.userProfile) {
+    console.log("Found complete profile data, redirecting to dashboard");
     window.location.href = "dashboard.html";
     return;
   }
+  
+  console.log("No complete profile found, showing form");
   
   // Otherwise, restore progress and show form
   if (st.userData) answers = st.userData;
@@ -513,8 +518,10 @@ nextBtn.addEventListener("click", async () => {
       // Clear the dots animation
       clearInterval(dotsInterval);
       
-      // Navigate directly to dashboard when complete
-      window.location.href = "dashboard.html";
+      // Small delay to ensure storage is complete before navigation
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 100);
     } catch (e) {
       // Clear the dots animation on error
       clearInterval(dotsInterval);
