@@ -1,257 +1,255 @@
-# ML Day Trading Bot
+# Growfolio ML Models
 
-A machine learning-based trading system that predicts short-term Buy/Hold/Sell signals for stocks and cryptocurrencies using PyTorch.
+Machine learning models that power short-term trading recommendations in the Growfolio Chrome extension. This directory contains the training scripts and model files for predicting Buy/Hold/Sell signals using LSTM neural networks.
 
-## Features
+## Overview
 
-- **Multiple ML Models**: LSTM, GRU, and Transformer architectures
-- **Technical Indicators**: RSI, EMA, MACD, ATR, VWAP, and more
-- **Real-time Prediction**: Live trading signal generation
-- **Risk Management**: User-configurable risk tolerance and position sizing
-- **Timeframes**: 1-minute, 5-minute, and 15-minute analysis
-- **Backtesting**: Historical performance evaluation
+The ML models in this directory are trained to predict short-term price movements for popular stocks and cryptocurrencies. When users select "Short-term trading" as their investment goal, these models provide AI-powered trading signals with confidence scores.
 
-## ML Model Specifications
+## Architecture
 
-### Inputs
-- **Technical Features** (16 features):
-  - `open`, `high`, `low`, `close`, `volume`
-  - `rsi_14`, `ema_9`, `ema_21`, `ema_50`
-  - `macd`, `macd_signal`, `macd_histogram`
-  - `atr_14`, `vwap`, `price_change_pct`, `volatility`
-- **User Features** (3 features):
-  - `risk_tolerance` (1-10 scale)
-  - `investment_amount` (USD)
-  - `desired_profit_pct` (percentage)
-- **Sequence Length**: 60 time steps (lookback period)
+### Model Type
+- **Architecture**: LSTM (Long Short-Term Memory) neural networks
+- **Framework**: PyTorch
+- **Input Features**: Technical indicators (RSI, MACD, EMA, ATR, VWAP, etc.)
+- **Output**: Buy/Hold/Sell action with confidence score (0-100%)
 
-### Outputs
-- **Action**: Buy/Hold/Sell (encoded as 1/0/-1)
-- **Confidence**: Confidence score (0-1)
-- **Probability**: Probability distribution [Buy, Hold, Sell]
+### Supported Assets
+The models are trained on the following assets:
+- **Stocks**: AAPL, MSFT, NVDA, TSLA, GOOGL, AMZN, META, AMD, INTC, LOW, TMO, MA, PEP, NFLX
+- **Cryptocurrencies**: BTC, ETH, BNB, ADA, SOL, XRP, DOGE, AVAX, DOT, SHIB
+
+### Timeframes
+- 5-minute and 15-minute intervals
 
 ## Project Structure
 
 ```
 ml_model/
-├── data/
-│   ├── raw/           # Raw OHLCV data
-│   └── processed/    # Processed features and labels
-├── models/           # Trained model files
-├── results/         # Training results and plots
-├── logs/           # Training logs
+├── models/              # Trained .pth model files
+│   ├── AAPL_5m_lstm.pth
+│   ├── AAPL_15m_lstm.pth
+│   ├── BTC_USDT_5m_lstm.pth
+│   └── ...
 ├── src/
-│   ├── indicators.py      # Technical indicators
-│   ├── preprocess_data.py # Data preprocessing
-│   ├── models.py          # PyTorch model definitions
-│   ├── train_model.py     # Model training
-│   └── predict_live.py    # Live prediction
-├── config.py        # Configuration settings
-├── example_usage.py # Usage examples
-└── requirements.txt # Dependencies
+│   ├── train_top20.py       # Main training script
+│   ├── models.py            # LSTM model definition
+│   ├── indicators.py        # Technical indicators
+│   ├── preprocess_data.py   # Data preprocessing
+│   └── predict_live.py      # Live prediction functions
+├── data/
+│   ├── raw/                 # Raw OHLCV data
+│   └── processed/           # Processed features
+├── results/                 # Training results and logs
+├── config.py                # Model configuration
+└── requirements.txt         # Dependencies
 ```
 
-## Quick Start
+## Training Models
 
-### 1. Installation
+### Quick Start
+
+Train models for all supported assets:
 
 ```bash
 cd ml_model
-pip install -r requirements.txt
-```
-
-### 2. Run Examples
-
-```bash
-python example_usage.py
+python train_top20.py
 ```
 
 This will:
-- Create sample data
-- Train LSTM, GRU, and Transformer models
-- Make live predictions
-- Compare model performance
+1. Download historical price data for all assets
+2. Preprocess and engineer features
+3. Train LSTM models for each asset/timeframe combination
+4. Save trained models to `models/` directory
+5. Generate training reports in `results/`
 
-### 3. Train Your Own Model
+### Training Configuration
+
+Edit `src/train_top20.py` to customize:
+- `SYMBOLS`: List of assets to train
+- `TIMEFRAMES`: List of intervals (e.g., ['5m', '15m'])
+- `EPOCHS`: Number of training epochs
+- `BATCH_SIZE`: Training batch size
+
+### Training Process
+
+For each asset/timeframe combination:
+1. **Data Collection**: Download historical OHLCV data
+2. **Feature Engineering**: Calculate 16+ technical indicators
+3. **Data Splitting**: 70% train, 15% validation, 15% test
+4. **Model Training**: Train LSTM with early stopping
+5. **Evaluation**: Calculate accuracy and F1 score
+6. **Model Saving**: Save `.pth` file to `models/` directory
+
+## Deployment to Hugging Face
+
+### Why Hugging Face?
+The trained models are too large (~5-10MB each) for GitHub. They are hosted on Hugging Face Hub and automatically downloaded by the backend on startup.
+
+### Uploading Models
+
+1. **Create Hugging Face Repository**:
+   - Go to https://huggingface.co/new
+   - Create a repository (e.g., `your-username/growfolio-models`)
+   - Set repository type to "Model"
+
+2. **Upload Models**:
+   ```bash
+   # Install huggingface_hub
+   pip install huggingface_hub
+   
+   # Login to Hugging Face
+   huggingface-cli login
+   
+   # Upload models
+   cd ml_model/models
+   huggingface-cli upload your-username/growfolio-models . --repo-type model
+   ```
+
+3. **Update Backend Configuration**:
+   Edit `backend/ml_loader.py`:
+   ```python
+   REPO_NAME = "your-username/growfolio-models"
+   ```
+
+### Model Download
+
+The backend automatically downloads models on startup via `backend/ml_loader.py`:
+- Downloads occur only once per deployment
+- Models are cached locally for faster subsequent startups
+- Missing models fall back to placeholder predictions
+
+## Integration with Growfolio
+
+### Backend Integration
+
+The ML models are used in `backend/app.py`:
 
 ```python
-from src.train_model import TradingModelTrainer
-
-# Initialize trainer
-trainer = TradingModelTrainer(model_type='lstm')
-
-# Prepare data (you need OHLCV data in parquet format)
-data = trainer.prepare_data('AAPL', '5m', 'path/to/data')
-
-# Train model
-results = trainer.train_model(data, 'AAPL', '5m')
+# Route: /analyze_trader_type
+# When trader_type == "day_trader":
+def handle_day_trader_analysis(user_profile):
+    # Load ML predictor
+    from ml_loader import get_ml_predictor
+    predictor = get_ml_predictor()
+    
+    # Generate predictions
+    predictions = predictor.predict_for_assets(assets)
+    
+    # Enhance with live prices
+    predictions = enhance_with_live_data(predictions)
+    
+    # Return to frontend
+    return predictions
 ```
 
-### 4. Make Live Predictions
+### Frontend Display
 
-```python
-from src.predict_live import LivePredictor
+The frontend (`frontend/dashboard.js`) displays predictions as:
+- **Stock Ticker**: e.g., AAPL, BTC
+- **Action**: BUY, SELL, or HOLD
+- **Confidence**: Percentage (0-100%)
+- **Current Price**: Live market price
+- **Buy Target**: Recommended entry price
+- **Sell Target**: Recommended exit price
+- **AI Feedback**: 3-sentence explanation from Gemini
 
-# Initialize predictor
-predictor = LivePredictor(model_type='lstm')
+## Model Performance
 
-# Load your OHLCV data
-df = pd.read_parquet('your_data.parquet')
+### Expected Metrics
+- **Accuracy**: 60-70% on test set
+- **F1 Score**: 0.55-0.65
+- **Confidence Calibration**: Well-calibrated for confidence scores
 
-# Make prediction
-result = predictor.predict_signal(df, 'AAPL', '5m', {
-    'risk_tolerance': 7,
-    'investment_amount': 10000,
-    'desired_profit_pct': 0.02
-})
+### Limitations
+- Models are trained on historical data
+- Past performance ≠ future results
+- Short-term predictions are inherently uncertain
+- Always use with proper risk management
 
-print(f"Action: {result['action']}")
-print(f"Confidence: {result['confidence']}")
-```
+## Technical Details
 
-## 🧠 Model Architecture
-
-### LSTM Model
-- **Input**: 60 timesteps × 16 features
-- **LSTM Layers**: 2 layers, 64 units each
-- **Attention**: Multi-head attention mechanism
-- **Output**: 3-class classification
-
-### GRU Model
-- **Input**: 60 timesteps × 16 features
-- **GRU Layers**: 2 layers, 64 units each
-- **Attention**: Multi-head attention mechanism
-- **Output**: 3-class classification
-
-### Transformer Model
-- **Input**: 60 timesteps × 16 features
-- **Encoder Layers**: 4 transformer layers
-- **Attention Heads**: 8 attention heads
-- **Output**: 3-class classification
-
-## Technical Indicators
-
-The system computes 16 technical indicators:
-
+### Input Features (16 total)
 1. **Price Data**: open, high, low, close, volume
-2. **Momentum**: RSI (14), MACD (12,26,9)
-3. **Trend**: EMA (9,21,50)
-4. **Volatility**: ATR (14), Bollinger Bands
-5. **Volume**: VWAP, Volume SMA
-6. **Price Features**: Price change %, High-Low %, etc.
+2. **Momentum**: RSI(14), MACD(12,26,9)
+3. **Trend**: EMA(9,21,50)
+4. **Volatility**: ATR(14), Bollinger Bands
+5. **Volume**: VWAP, Volume MA
+6. **Derived**: Price change %, High-Low spread
 
-## Configuration
-
-Edit `config.py` to customize:
-
-```python
-# Model parameters
-MODEL_CONFIG = {
-    'sequence_length': 60,
-    'lstm_units': 64,
-    'dropout_rate': 0.2,
-    'learning_rate': 0.001,
-    'epochs': 100
-}
-
-# User settings
-USER_CONFIG = {
-    'risk_tolerance': 5,  # 1-10 scale
-    'investment_amount': 10000,
-    'desired_profit_pct': 0.02
-}
+### Model Architecture
+```
+Input (60 timesteps × 16 features)
+    ↓
+LSTM Layer 1 (64 units)
+    ↓
+Dropout (0.2)
+    ↓
+LSTM Layer 2 (64 units)
+    ↓
+Dropout (0.2)
+    ↓
+Dense Layer (32 units)
+    ↓
+Output Layer (3 classes: Buy/Hold/Sell)
 ```
 
-## Performance Metrics
+### Prediction Pipeline
+1. Load last 60 candlesticks of OHLCV data
+2. Calculate technical indicators
+3. Normalize features using trained scaler
+4. Pass through LSTM model
+5. Apply softmax to get probabilities
+6. Select action with highest probability
+7. Calculate confidence as max probability
+8. Enhance with live price from Finnhub API
 
-The system evaluates models using:
+## Dependencies
 
-- **Accuracy**: Overall prediction accuracy
-- **Precision/Recall**: Per-class performance
-- **F1-Score**: Harmonic mean of precision and recall
-- **Confusion Matrix**: Detailed classification results
-- **Training History**: Loss and accuracy curves
-
-## 🔄 Training Pipeline
-
-1. **Data Loading**: Load OHLCV data from parquet files
-2. **Data Cleaning**: Remove invalid data, handle missing values
-3. **Feature Engineering**: Compute technical indicators
-4. **Label Generation**: Create Buy/Hold/Sell labels based on future returns
-5. **Data Splitting**: Train/Validation/Test (70/15/15)
-6. **Model Training**: Train with early stopping
-7. **Evaluation**: Test on unseen data
-8. **Saving**: Save model and results
-
-## Live Prediction Pipeline
-
-1. **Data Preparation**: Load recent OHLCV data
-2. **Feature Computation**: Calculate technical indicators
-3. **Scaling**: Apply trained scaler to features
-4. **Prediction**: Run through trained model
-5. **Risk Adjustment**: Apply user risk preferences
-6. **Output**: Return action, confidence, and probabilities
-
-## 📝 Example Output
-
-```json
-{
-  "symbol": "AAPL",
-  "timeframe": "5m",
-  "action": "Buy",
-  "risk_adjusted_action": "Buy",
-  "confidence": 0.85,
-  "probabilities": {
-    "sell": 0.05,
-    "hold": 0.10,
-    "buy": 0.85
-  }
-}
+```
+torch>=2.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+ta>=0.11.0
+huggingface_hub>=0.17.0
 ```
 
-## Customization
+## Troubleshooting
 
-### Adding New Features
-1. Modify `src/indicators.py` to add new technical indicators
-2. Update `config.py` to include new features in `MODEL_CONFIG['features']`
-3. Retrain models with new features
+### Model Not Loading
+- Check Hugging Face credentials in `.env`
+- Verify repository name in `ml_loader.py`
+- Ensure models exist in Hugging Face repository
 
-### Adding New Models
-1. Create new model class in `src/models.py`
-2. Add to `ModelFactory.create_model()`
-3. Update training and prediction scripts
+### Poor Predictions
+- Models may need retraining with new data
+- Check if market conditions have changed
+- Review technical indicator calculations
 
-### Risk Management
-- Adjust `USER_CONFIG` for different risk profiles
-- Modify `_apply_risk_adjustment()` in `predict_live.py`
-- Implement position sizing based on confidence scores
+### Slow Predictions
+- Models are loaded once on startup
+- Subsequent predictions are fast (<100ms)
+- If slow, check Finnhub API rate limits
 
-## 📚 Dependencies
+## Future Improvements
 
-- **PyTorch**: Deep learning framework
-- **pandas/numpy**: Data manipulation
-- **scikit-learn**: ML utilities and metrics
-- **ta**: Technical analysis indicators
-- **matplotlib/plotly**: Visualization
-- **joblib**: Model serialization
+- [ ] Add GRU and Transformer model variants
+- [ ] Implement online learning for model updates
+- [ ] Add more technical indicators (custom indicators)
+- [ ] Ensemble multiple models for better accuracy
+- [ ] Add portfolio-level predictions
+- [ ] Real-time streaming predictions via WebSocket
 
-## Important Notes
+## Contributing
 
-- This is for educational/research purposes
-- Always test thoroughly before live trading
-- Past performance doesn't guarantee future results
-- Consider transaction costs and slippage
-- Implement proper risk management
-- Monitor model performance regularly
+To contribute ML improvements:
+1. Train new models with updated data
+2. Test on validation set
+3. Upload to Hugging Face
+4. Update `ml_loader.py` if needed
+5. Submit pull request
 
-## 🤝 Contributing
+## License
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is for educational purposes. Use at your own risk for actual trading.
+This project is for educational purposes. Trading involves risk of financial loss.
