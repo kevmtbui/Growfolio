@@ -334,6 +334,19 @@ async function renderTraderSpecificContent(traderType, analysisData, userProfile
   const recsList = $("recsList");
   const insight = $("insight");
 
+  // Show loading state while generating recommendations
+  recsList.innerHTML = `
+    <div style="text-align: center; padding: 40px 20px; animation: fadeInUp 0.6s ease-out;">
+      <h3 style="margin-bottom: 10px; font-size: 16px;">AI Generating Stock Recommendations</h3>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">Analyzing market data and your profile</p>
+      <div style="display: flex; justify-content: center; gap: 6px;">
+        <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+        <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
+        <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
+      </div>
+    </div>
+  `;
+
   if (traderType === "day_trader") {
     await renderDayTraderContent(analysisData, userProfile);
   } else if (traderType === "retirement_investor") {
