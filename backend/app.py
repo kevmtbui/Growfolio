@@ -2,6 +2,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from gemini_service import create_user_profile, explain_stock
+from profile_creator import create_user_profile as create_advanced_profile
+from explanations import explain_stock_recommendation
 import json
 
 app = FastAPI()
@@ -82,6 +84,96 @@ async def generate_profile(req: Request):
     profile = create_user_profile(data)
     return {"user_profile": profile}
 
+@app.post("/create_advanced_profile")
+async def generate_advanced_profile(req: Request):
+    """
+    Receives user answers and creates advanced portfolio with real-time data
+    Returns comprehensive profile with ETF selections, quotes, and news
+    """
+    data = await req.json()
+    try:
+        profile = create_advanced_profile(data)
+        return {"user_profile": profile}
+    except Exception as e:
+        return {"error": f"Failed to create advanced profile: {str(e)}"}
+
+@app.post("/analyze_trader_type")
+async def analyze_trader_type(req: Request):
+    """
+    Receives user profile and determines trader type routing
+    Returns appropriate analysis based on trader type
+    """
+    data = await req.json()
+    user_profile = data.get("user_profile", {})
+    trader_type = data.get("trader_type", "")
+    
+    if trader_type == "day_trader":
+        # Route to ML model for short-term predictions
+        return await handle_day_trader_analysis(user_profile)
+    elif trader_type == "retirement_investor":
+        # Route to advanced portfolio system for long-term allocation
+        return await handle_retirement_analysis_advanced(user_profile)
+    else:
+        return {"error": "Invalid trader type. Must be 'day_trader' or 'retirement_investor'"}
+
+async def handle_day_trader_analysis(user_profile: dict):
+    """
+    Handles day trader analysis using ML model (placeholder for now)
+    """
+    # Placeholder ML predictions - replace with actual ML model when ready
+    ml_predictions = {
+        "predictions": [
+            {"ticker": "AAPL", "action": "buy", "confidence": 78, "timeframe": "15min"},
+            {"ticker": "MSFT", "action": "hold", "confidence": 65, "timeframe": "30min"},
+            {"ticker": "NVDA", "action": "sell", "confidence": 82, "timeframe": "1hour"},
+            {"ticker": "TSLA", "action": "buy", "confidence": 71, "timeframe": "45min"}
+        ],
+        "market_sentiment": "bullish",
+        "volatility_level": "medium",
+        "recommended_position_size": "small"
+    }
+    
+    return {
+        "trader_type": "day_trader",
+        "analysis": ml_predictions,
+        "timestamp": "2024-01-15T10:30:00Z"
+    }
+
+async def handle_retirement_analysis_advanced(user_profile: dict):
+    """
+    Handles retirement investor analysis using advanced portfolio system
+    """
+    try:
+        # Extract risk score and jurisdiction from user profile
+        risk_score = user_profile.get("risk_score", 5)
+        jurisdiction = user_profile.get("jurisdiction", "CA")
+        
+        # Use the advanced portfolio system
+        from advisor import advise_online
+        from explanations import summarize_advice
+        
+        advice = advise_online(risk_score, jurisdiction)
+        explanation = summarize_advice(advice)
+        advice["explanation"] = explanation
+        
+        return {
+            "trader_type": "retirement_investor", 
+            "analysis": advice,
+            "timestamp": "2024-01-15T10:30:00Z"
+        }
+    except Exception as e:
+        # Fallback to basic Gemini analysis
+        from gemini_service import create_retirement_portfolio
+        portfolio_allocation = create_retirement_portfolio(user_profile)
+        
+        return {
+            "trader_type": "retirement_investor", 
+            "analysis": portfolio_allocation,
+            "timestamp": "2024-01-15T10:30:00Z",
+            "fallback": True,
+            "error": str(e)
+        }
+
 @app.post("/recommend_stock")
 async def recommend_stock(req: Request):
     """
@@ -96,7 +188,13 @@ async def recommend_stock(req: Request):
     if not stock_name or not user_profile:
         return {"error": "Missing stock_name or user_profile"}
     
-    explanation = explain_stock(stock_name, user_profile, ml_output)
+    try:
+        # Use the new explanation system
+        explanation = explain_stock_recommendation(stock_name, user_profile, ml_output)
+    except Exception as e:
+        # Fallback to basic explanation
+        explanation = explain_stock(stock_name, user_profile, ml_output)
+    
     return {
         "stock": stock_name,
         "ml_output": ml_output,

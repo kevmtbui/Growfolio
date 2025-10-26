@@ -216,6 +216,68 @@ def create_user_profile(user_data: dict) -> dict:
     
     return profile
 
+def create_retirement_portfolio(user_profile: dict) -> dict:
+    """
+    Uses Gemini to create a retirement portfolio allocation based on user profile
+    """
+    risk_score = user_profile.get("risk_score", 5)
+    age = user_profile.get("age", 35)
+    horizon_years = user_profile.get("horizon_years", 20)
+    income = user_profile.get("income", 0)
+    expenses = user_profile.get("expenses", 0)
+    
+    prompt = f"""
+    You are a certified financial planner creating a retirement portfolio allocation for a client.
+    
+    Client Profile:
+    - Age: {age}
+    - Investment Horizon: {horizon_years} years
+    - Risk Score: {risk_score}/10
+    - Monthly Income: ${income}
+    - Monthly Expenses: ${expenses}
+    - Disposable Income: ${income - expenses}
+    
+    Create a detailed portfolio allocation that includes:
+    1. Asset allocation percentages (stocks, bonds, cash, alternatives)
+    2. Specific ETF/fund recommendations for each category
+    3. Rationale for the allocation
+    4. Rebalancing schedule
+    5. Risk management considerations
+    
+    Return your response as a structured JSON with the following format:
+    {{
+        "asset_allocation": {{
+            "stocks": {{"percentage": 60, "recommendations": ["VTI", "VEA"]}},
+            "bonds": {{"percentage": 30, "recommendations": ["BND", "AGG"]}},
+            "cash": {{"percentage": 10, "recommendations": ["Money Market"]}}
+        }},
+        "rationale": "Detailed explanation of why this allocation fits the client",
+        "rebalancing": "Quarterly or annual rebalancing schedule",
+        "risk_notes": "Key risk considerations and mitigation strategies"
+    }}
+    """
+    
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(prompt)
+    
+    try:
+        # Try to parse Gemini output as JSON
+        portfolio = json.loads(response.text)
+    except:
+        # Fallback: return structured data with raw text
+        portfolio = {
+            "asset_allocation": {
+                "stocks": {"percentage": 60, "recommendations": ["VTI", "VEA"]},
+                "bonds": {"percentage": 30, "recommendations": ["BND", "AGG"]},
+                "cash": {"percentage": 10, "recommendations": ["Money Market"]}
+            },
+            "rationale": response.text,
+            "rebalancing": "Annual rebalancing recommended",
+            "risk_notes": "Monitor portfolio quarterly and adjust based on market conditions"
+        }
+    
+    return portfolio
+
 def explain_stock(stock_name: str, user_profile: dict, ml_output: dict) -> str:
     """
     Uses Gemini to convert ML prediction + user profile into plain-language recommendation
