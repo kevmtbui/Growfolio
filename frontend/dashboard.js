@@ -64,6 +64,11 @@ const riskName = (r) => {
     await refreshRecommendations();
   });
 
+  // Update profile button
+  $("btnUpdateProfile").addEventListener("click", () => {
+    window.location.href = "popup.html";
+  });
+
   // Back button
   $("btnSettings").addEventListener("click", () => {
     window.location.href = "popup.html";

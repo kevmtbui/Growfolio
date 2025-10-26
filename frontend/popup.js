@@ -85,8 +85,14 @@ const goDashboardBtn = document.getElementById("goDashboardBtn");
 chrome.storage.local.get(["userData", "currentSlide", "userProfile", "traderType", "analysisData"], (st) => {
   console.log("Popup startup - checking stored data:", st);
   
-  // Always show the form - let users manually navigate to dashboard if they want
-  console.log("Showing form");
+  // Check if we have a complete profile - if so, go directly to dashboard
+  if (st.userProfile && st.traderType && st.analysisData && st.userData) {
+    console.log("Complete profile found, redirecting to dashboard");
+    window.location.href = "dashboard.html";
+    return;
+  }
+  
+  console.log("No complete profile found, showing form");
   
   // Restore progress and show form
   if (st.userData) answers = st.userData;
