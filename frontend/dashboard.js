@@ -28,11 +28,32 @@ const riskName = (r) => {
 
   console.log("Dashboard loaded data:", { userData, recommendedRisk, investable, userProfile, traderType, analysisData });
 
-  // Always show loading state initially, then render content
+  // Derive stats FIRST and render them immediately - summary should never be hidden
+  const income = Number(userData?.income || 0);
+  const expenses = Number(userData?.total_expenses || 0);
+  const savingsRate = income > 0 ? ((Math.max(0, income - expenses) / income) * 100) : 0;
+
+  const stats = [
+    { label: "Income", value: `$${fmt(income)}/mo` },
+    { label: "Expenses", value: `$${fmt(expenses)}/mo` },
+    { label: "Savings Rate", value: `${Math.round(savingsRate)}%` },
+    { label: "Risk Profile", value: riskName(Number(recommendedRisk || 5)) },
+    { label: "Trader Type", value: traderType ? traderType.replace('_', ' ').toUpperCase() : "UNKNOWN" },
+  ];
+
+  // Render stat chips IMMEDIATELY - summary should always be visible
+  const statsGrid = $("statsGrid");
+  statsGrid.innerHTML = "";
+  stats.forEach(s => {
+    const div = document.createElement("div");
+    div.className = "chip";
+    div.innerHTML = `<div class="label">${s.label}</div><div class="value">${s.value}</div>`;
+    statsGrid.appendChild(div);
+  });
+
+  // Now handle recommendations - clear recommendations list for loading
   const recsList = $("recsList");
   const insight = $("insight");
-  
-  // Clear recommendations list for loading
   recsList.innerHTML = "";
 
   // If no analysis data, try to generate it
@@ -61,36 +82,10 @@ const riskName = (r) => {
     }
   }
 
-  // We have analysis data, render the content (loading state will be shown by renderTraderSpecificContent)
+  // We have analysis data, render the content
   if (analysisData) {
     await renderTraderSpecificContent(traderType, analysisData, userProfile);
   }
-
-  // Derive stats
-  const income = Number(userData?.income || 0);
-  const expenses = Number(userData?.total_expenses || 0);
-  const savingsRate = income > 0 ? ((Math.max(0, income - expenses) / income) * 100) : 0;
-
-  const stats = [
-    { label: "Income", value: `$${fmt(income)}/mo` },
-    { label: "Expenses", value: `$${fmt(expenses)}/mo` },
-    { label: "Savings Rate", value: `${Math.round(savingsRate)}%` },
-    { label: "Risk Profile", value: riskName(Number(recommendedRisk || 5)) },
-    { label: "Trader Type", value: traderType ? traderType.replace('_', ' ').toUpperCase() : "UNKNOWN" },
-  ];
-
-  // Render stat chips
-  const statsGrid = $("statsGrid");
-  statsGrid.innerHTML = "";
-  stats.forEach(s => {
-    const div = document.createElement("div");
-    div.className = "chip";
-    div.innerHTML = `<div class="label">${s.label}</div><div class="value">${s.value}</div>`;
-    statsGrid.appendChild(div);
-  });
-
-  // Render content based on trader type
-  await renderTraderSpecificContent(traderType, analysisData, userProfile);
 
   // Footer actions
   $("btnExport").addEventListener("click", async () => {
