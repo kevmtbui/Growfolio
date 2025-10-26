@@ -45,10 +45,6 @@ const SLIDES = [
     id: 3, title: "Personal Profile",
     questions: [
       {
-        key: "drawdown_resp", text: "If your investment dropped 20% in a month, what would you do?", type: "multiple_choice",
-        options: ["Sell everything", "Sell some", "Do nothing", "Buy more"]
-      },
-      {
         key: "experience", text: "Investing experience", type: "multiple_choice",
         options: ["Beginner", "Intermediate", "Advanced"]
       },
@@ -57,16 +53,19 @@ const SLIDES = [
         options: ["Daily", "Weekly", "Monthly", "Rarely"]
       },
       {
+        key: "portfolio_pref", text: "Portfolio should prioritize…", type: "multiple_choice",
+        options: ["Safety & Stability", "Balanced Growth", "Aggressive Growth"]
+      },
+      {
+        key: "drawdown_resp", text: "If your investment dropped 20% in a month, what would you do?", type: "multiple_choice",
+        options: ["Sell everything", "Sell some", "Do nothing", "Buy more"]
+      },
+      {
         key: "risk_statement", text: "Which best describes you?", type: "multiple_choice",
         options: [
           "I'd rather miss some gains than lose money.",
           "I'm okay with short-term losses if I can earn more long-term.",
-          "I enjoy taking calculated risks."
-        ]
-      },
-      {
-        key: "portfolio_pref", text: "Portfolio should prioritize…", type: "multiple_choice",
-        options: ["Safety & Stability", "Balanced Growth", "Aggressive Growth"]
+          "I enjoy taking calculated risks."]
       }
     ]
   }
