@@ -109,7 +109,7 @@ const riskName = (r) => {
 
   // Update profile button
   $("btnUpdateProfile").addEventListener("click", () => {
-    window.location.href = "popup.html";
+    window.location.href = "popup.html?from=dashboard";
   });
 })();
 
@@ -359,21 +359,29 @@ async function renderDayTraderContent(analysisData, userProfile) {
   if (analysisData?.analysis?.predictions) {
     const predictions = analysisData.analysis.predictions;
 
-    for (const pred of predictions) {
-      const explanation = await explain(pred.ticker, userProfile, pred);
-      
-      // Add explanation of what BUY/SELL/HOLD means
-      let actionExplanation = "";
-      if (pred.action === "buy") {
-        actionExplanation = "Consider opening a new position or adding to an existing one.";
-      } else if (pred.action === "sell") {
-        actionExplanation = "Consider taking profits or reducing your position.";
-      } else if (pred.action === "hold") {
-        actionExplanation = "Maintain your current position - no immediate action needed.";
-      }
-      
-      const rationale = (explanation || `${pred.action.toUpperCase()} signal based on ML analysis`) + " " + actionExplanation;
+    // Generate all explanations first, then display all at once
+    const explanations = await Promise.all(
+      predictions.map(async (pred) => {
+        const explanation = await explain(pred.ticker, userProfile, pred);
+        
+        // Add explanation of what BUY/SELL/HOLD means
+        let actionExplanation = "";
+        if (pred.action === "buy") {
+          actionExplanation = "Consider opening a new position or adding to an existing one.";
+        } else if (pred.action === "sell") {
+          actionExplanation = "Consider taking profits or reducing your position.";
+        } else if (pred.action === "hold") {
+          actionExplanation = "Maintain your current position - no immediate action needed.";
+        }
+        
+        const rationale = (explanation || `${pred.action.toUpperCase()} signal based on ML analysis`) + " " + actionExplanation;
+        
+        return { pred, rationale };
+      })
+    );
 
+    // Now display all recommendations at once
+    explanations.forEach(({ pred, rationale }) => {
       const card = document.createElement("div");
       card.className = "rec";
       
@@ -398,7 +406,7 @@ async function renderDayTraderContent(analysisData, userProfile) {
         <p class="muted">${rationale}</p>
       `;
       recsList.appendChild(card);
-    }
+    });
 
     // Show disclaimer after all recommendations
     const disclaimerCard = document.createElement("div");
@@ -479,11 +487,17 @@ async function renderRetirementInvestorContent(analysisData, userProfile) {
       }
     });
     
-    // Get explanations for each ETF
-    for (const rec of allRecommendations) {
-      const explanation = await explain(rec.ticker, userProfile);
-      const rationale = explanation || `${rec.assetClass} allocation for diversification and ${rec.assetClass === 'stocks' ? 'growth' : 'stability'}.`;
-      
+    // Get explanations for each ETF - generate all at once, then display all at once
+    const explanations = await Promise.all(
+      allRecommendations.map(async (rec) => {
+        const explanation = await explain(rec.ticker, userProfile);
+        const rationale = explanation || `${rec.assetClass} allocation for diversification and ${rec.assetClass === 'stocks' ? 'growth' : 'stability'}.`;
+        return { rec, rationale };
+      })
+    );
+    
+    // Now display all recommendations at once
+    explanations.forEach(({ rec, rationale }) => {
       const card = document.createElement("div");
       card.className = "rec";
       card.innerHTML = `
@@ -498,7 +512,7 @@ async function renderRetirementInvestorContent(analysisData, userProfile) {
         <p class="muted">${rationale}</p>
       `;
       recsList.appendChild(card);
-    }
+    });
 
     // Clean up rationale text - remove JSON formatting and extract key points
     let cleanRationale = analysisData.analysis.rationale || "Balanced allocation based on your risk profile and investment horizon.";
