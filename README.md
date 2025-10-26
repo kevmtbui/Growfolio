@@ -12,17 +12,17 @@ Growfolio is a Chrome extension that provides personalized investment recommenda
 
 ## Features
 
-### 🎯 Personalized Recommendations
+### Personalized Recommendations
 - **Day Trading**: ML-powered buy/sell/hold signals with confidence scores for stocks and cryptocurrencies
 - **Retirement Planning**: AI-generated portfolio allocations with ETF recommendations
 - **Risk Assessment**: Automatic risk profiling based on your financial situation
 
-### 🤖 AI-Powered Insights
+### AI-Powered Insights
 - 3-sentence explanations for each recommendation
 - Market sentiment analysis
 - Portfolio strategy breakdowns
 
-### 📊 Real-Time Data
+### Real-Time Data
 - Live stock prices
 - Current market trends
 - Volatility analysis
