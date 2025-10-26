@@ -286,6 +286,8 @@ p:last-child, .muted:last-child {
   border-radius: 8px;
   font-size: 11px;
   transition: var(--transition-fast);
+  min-width: 40px;
+  text-align: center;
 }
 
 .rec .action.buy {
