@@ -20,7 +20,7 @@ const riskName = (r) => {
   return "Aggressive";
 };
 
-(async function init() {
+async function init() {
   // Load everything we might need from storage
   const { userData, recommendedRisk, investable, userProfile, traderType, analysisData } = await chrome.storage.local.get([
     "userData", "recommendedRisk", "investable", "userProfile", "traderType", "analysisData"
@@ -101,7 +101,7 @@ const riskName = (r) => {
   $("btnUpdateProfile").addEventListener("click", () => {
     window.location.href = "popup.html?from=dashboard";
   });
-})();
+}
 
 async function refreshRecommendations() {
   try {
