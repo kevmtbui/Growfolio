@@ -26,6 +26,8 @@ const riskName = (r) => {
     "userData", "recommendedRisk", "investable", "userProfile", "traderType", "analysisData"
   ]);
 
+  console.log("Dashboard loaded data:", { userData, recommendedRisk, investable, userProfile, traderType, analysisData });
+
   // Derive stats
   const income = Number(userData?.income || 0);
   const expenses = Number(userData?.total_expenses || 0);
@@ -202,6 +204,12 @@ async function renderTraderSpecificContent(traderType, analysisData, userProfile
 async function renderDayTraderContent(analysisData, userProfile) {
   const recsList = $("recsList");
   const insight = $("insight");
+  const insightCard = insight.closest('.card'); // Get the parent card
+
+  // Hide the "Why these picks?" section for day traders
+  if (insightCard) {
+    insightCard.style.display = 'none';
+  }
 
   recsList.innerHTML = "";
 
@@ -210,7 +218,18 @@ async function renderDayTraderContent(analysisData, userProfile) {
 
     for (const pred of predictions) {
       const explanation = await explain(pred.ticker, userProfile, pred);
-      const rationale = explanation || `${pred.action.toUpperCase()} signal based on ML analysis`;
+      
+      // Add explanation of what BUY/SELL/HOLD means
+      let actionExplanation = "";
+      if (pred.action === "buy") {
+        actionExplanation = "Consider opening a new position or adding to an existing one.";
+      } else if (pred.action === "sell") {
+        actionExplanation = "Consider taking profits or reducing your position.";
+      } else if (pred.action === "hold") {
+        actionExplanation = "Maintain your current position - no immediate action needed.";
+      }
+      
+      const rationale = (explanation || `${pred.action.toUpperCase()} signal based on ML analysis`) + " " + actionExplanation;
 
       const card = document.createElement("div");
       card.className = "rec";
@@ -238,11 +257,15 @@ async function renderDayTraderContent(analysisData, userProfile) {
       recsList.appendChild(card);
     }
 
-    insight.innerHTML = `<em>These are ML-generated predictions for short-term trading. Always do your own research.</em>`;
+    // Show disclaimer after all recommendations
+    const disclaimerCard = document.createElement("div");
+    disclaimerCard.className = "rec";
+    disclaimerCard.style.cssText = "background-color: #FFF3E0; border-left: 3px solid #F57C00;";
+    disclaimerCard.innerHTML = `<p style="margin: 0;"><em>⚠️ These are ML-generated predictions for short-term trading. Always do your own research before making investment decisions.</em></p>`;
+    recsList.appendChild(disclaimerCard);
   } else {
     // Fallback if no analysis data
     recsList.innerHTML = "<p class='muted'>No trading signals available. Please refresh or check your connection.</p>";
-    insight.textContent = "Day trading analysis not available. Please try again.";
   }
 }
 

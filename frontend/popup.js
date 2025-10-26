@@ -32,10 +32,6 @@ const SLIDES = [
         key: "horizon", text: "Planned investment horizon", type: "dropdown",
         options: ["<1 year", "1-3 years", "3-7 years", "7-15 years", "15+ years"]
       },
-      {
-        key: "retire_age", text: "If retirement, at what age would you like to retire?", type: "int", min: 18, max: 120,
-        conditional: { key: "primary_goal", equals: "Retirement" }
-      },
       // CHANGED: slider now 1–100 (percent)
       { key: "invest_pct", text: "How much of your net savings are you willing to invest?", type: "slider", min: 1, max: 100 },
       { key: "risk_scale", text: "Preference: steady vs. higher returns (1-5)", type: "scale", min: 1, max: 5 }
@@ -45,10 +41,6 @@ const SLIDES = [
     id: 3, title: "Personal Profile",
     questions: [
       {
-        key: "drawdown_resp", text: "If your investment dropped 20% in a month, what would you do?", type: "multiple_choice",
-        options: ["Sell everything", "Sell some", "Do nothing", "Buy more"]
-      },
-      {
         key: "experience", text: "Investing experience", type: "multiple_choice",
         options: ["Beginner", "Intermediate", "Advanced"]
       },
@@ -57,16 +49,19 @@ const SLIDES = [
         options: ["Daily", "Weekly", "Monthly", "Rarely"]
       },
       {
+        key: "portfolio_pref", text: "Portfolio should prioritize…", type: "multiple_choice",
+        options: ["Safety & Stability", "Balanced Growth", "Aggressive Growth"]
+      },
+      {
+        key: "drawdown_resp", text: "If your investment dropped 20% in a month, what would you do?", type: "multiple_choice",
+        options: ["Sell everything", "Sell some", "Do nothing", "Buy more"]
+      },
+      {
         key: "risk_statement", text: "Which best describes you?", type: "multiple_choice",
         options: [
           "I'd rather miss some gains than lose money.",
           "I'm okay with short-term losses if I can earn more long-term.",
-          "I enjoy taking calculated risks."
-        ]
-      },
-      {
-        key: "portfolio_pref", text: "Portfolio should prioritize…", type: "multiple_choice",
-        options: ["Safety & Stability", "Balanced Growth", "Aggressive Growth"]
+          "I enjoy taking calculated risks."]
       }
     ]
   }
@@ -87,7 +82,19 @@ const goDashRow = document.getElementById("goDashRow");
 const goDashboardBtn = document.getElementById("goDashboardBtn");
 
 // Restore stored progress
-chrome.storage.local.get(["userData", "currentSlide", "userProfile"], (st) => {
+chrome.storage.local.get(["userData", "currentSlide", "userProfile", "traderType", "analysisData"], (st) => {
+  console.log("Popup startup - checking stored data:", st);
+  
+  // If user has completed the form and has recommendations, go straight to dashboard
+  if (st.traderType && st.analysisData && st.userProfile) {
+    console.log("Found complete profile data, redirecting to dashboard");
+    window.location.href = "dashboard.html";
+    return;
+  }
+  
+  console.log("No complete profile found, showing form");
+  
+  // Otherwise, restore progress and show form
   if (st.userData) answers = st.userData;
   if (Number.isInteger(st.currentSlide)) slideIndex = Math.min(st.currentSlide, SLIDES.length - 1);
   if (st.userProfile) userProfile = st.userProfile;
@@ -373,7 +380,6 @@ function mapToBackendFormat(answers) {
     "6": answers.age,
     "7": answers.primary_goal,
     "8": answers.horizon,
-    "9": answers.retire_age,
     "10": answers.invest_pct,
     "11": answers.risk_scale,
     "12": answers.drawdown_resp,
@@ -413,12 +419,20 @@ async function createProfile() {
     const traderType = determineTraderType(answers);
     const analysisData = await getTraderAnalysis(userProfile, traderType);
 
-    chrome.storage.local.set({
+    // Store all data with debugging
+    const storageData = {
       userProfile,
       traderType,
       analysisData,
       isAdvancedProfile: !!userProfile && !data.error
-    });
+    };
+    
+    console.log("Storing data:", storageData);
+    await chrome.storage.local.set(storageData);
+    
+    // Verify storage worked
+    const stored = await chrome.storage.local.get(["userProfile", "traderType", "analysisData"]);
+    console.log("Stored data verification:", stored);
 
     // Success - data is stored, will navigate to dashboard
     return true;
@@ -504,8 +518,10 @@ nextBtn.addEventListener("click", async () => {
       // Clear the dots animation
       clearInterval(dotsInterval);
       
-      // Navigate directly to dashboard when complete
-      window.location.href = "dashboard.html";
+      // Small delay to ensure storage is complete before navigation
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 100);
     } catch (e) {
       // Clear the dots animation on error
       clearInterval(dotsInterval);

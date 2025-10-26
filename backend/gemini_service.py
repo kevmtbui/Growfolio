@@ -18,19 +18,13 @@ def _map(val, table, default):
 
 def _parse_horizon_years(user):
     """
-    Uses Q7 (goal), Q8 (horizon bucket), Q9 (retirement age), Q6 (age).
+    Uses Q7 (goal), Q8 (horizon bucket), Q6 (age).
     Falls back to a sensible default if fields are missing.
     """
     goal = str(user.get("7", "")).lower()
     age = float(user.get("6", 0) or 0)
 
-    # If retirement goal, use retirement_age - age
-    if "retire" in goal:
-        retire_age = float(user.get("9", 0) or 0)
-        if retire_age > age:
-            return max(0.0, retire_age - age)
-
-    # Otherwise parse horizon bucket in Q8
+    # Parse horizon bucket in Q8
     horizon_raw = str(user.get("8", "")).lower()
     # Map common bucket labels to midpoints (years)
     buckets = {
@@ -171,7 +165,6 @@ def create_user_profile(user_data: dict) -> dict:
     Investment Goals:
     Primary goal: {user_data.get('7')}
     Investment horizon: {user_data.get('8')}
-    Target retirement age: {user_data.get('9')}
     Percentage to invest: {user_data.get('10')}
     Growth preference: {user_data.get('11')}
     Reaction to 20% loss: {user_data.get('12')}
