@@ -241,15 +241,4 @@ huggingface_hub>=0.17.0
 - [ ] Add portfolio-level predictions
 - [ ] Real-time streaming predictions via WebSocket
 
-## Contributing
 
-To contribute ML improvements:
-1. Train new models with updated data
-2. Test on validation set
-3. Upload to Hugging Face
-4. Update `ml_loader.py` if needed
-5. Submit pull request
-
-## License
-
-This project is for educational purposes. Trading involves risk of financial loss.
