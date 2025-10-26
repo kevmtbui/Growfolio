@@ -1,11 +1,7 @@
 // Dashboard logic: read stored profile, compute stats, fetch explanations
 const API_BASE = "https://growfolio-production.up.railway.app";
 
-const $ = (id) => {
-  const element = document.getElementById(id);
-  console.log(`Looking for element with id "${id}":`, element);
-  return element;
-};
+const $ = (id) => document.getElementById(id);
 
 // Simple helpers
 const fmt = (n) => {
@@ -25,14 +21,10 @@ const riskName = (r) => {
 };
 
 async function init() {
-  console.log("Dashboard init() function called");
-  
   // Load everything we might need from storage
   const { userData, recommendedRisk, investable, userProfile, traderType, analysisData } = await chrome.storage.local.get([
     "userData", "recommendedRisk", "investable", "userProfile", "traderType", "analysisData"
   ]);
-
-  console.log("Dashboard loaded data:", { userData, recommendedRisk, investable, userProfile, traderType, analysisData });
 
   // Derive stats FIRST and render them immediately - summary should never be hidden
   const income = Number(userData?.income || 0);
@@ -94,20 +86,11 @@ async function init() {
   }
 
   // Footer actions
-  console.log("Setting up footer actions...");
   const exportBtn = $("btnExport");
-  console.log("Export button found:", exportBtn);
-  console.log("Export button element:", exportBtn?.tagName, exportBtn?.id);
-  
   if (exportBtn) {
-    console.log("Adding event listener to export button");
     exportBtn.addEventListener("click", async () => {
-      console.log("Export button clicked!");
       await exportToPDF();
     });
-    console.log("Event listener added successfully");
-  } else {
-    console.error("Export button not found! Available elements:", document.querySelectorAll('button'));
   }
 
   // Refresh button
@@ -245,12 +228,9 @@ async function refreshRecommendations() {
 
 async function exportToPDF() {
   try {
-    console.log("Export button clicked - starting export...");
     const { userData, recommendedRisk, userProfile, traderType, analysisData } = await chrome.storage.local.get([
       "userData", "recommendedRisk", "userProfile", "traderType", "analysisData"
     ]);
-    
-    console.log("Export data loaded:", { userData, recommendedRisk, userProfile, traderType, analysisData });
 
     // Create formatted text content for PDF
     let content = "GROWFOLIO INVESTMENT REPORT\n";
@@ -350,18 +330,18 @@ async function exportToPDF() {
     content += "\n" + "=".repeat(50) + "\n";
     content += `Generated: ${new Date().toLocaleString()}\n`;
     
-    // Create blob and download
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `growfolio-report-${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    // Try to copy to clipboard first, then fallback to new tab
+    try {
+      await navigator.clipboard.writeText(content);
+      alert("Report copied to clipboard! You can paste it into any text editor.");
+    } catch (clipboardError) {
+      // If clipboard fails, open in new tab
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
     
-    alert("Report exported successfully! ✓");
   } catch (error) {
     console.error("Export error:", error);
     alert(`Failed to export: ${error.message}`);
@@ -697,16 +677,6 @@ async function explain(ticker, userProfile, predictionData = null) {
   }
 }
 
-// Test if button exists immediately
-document.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM loaded, checking for export button...");
-  const testBtn = document.getElementById('btnExport');
-  console.log("Export button on DOM load:", testBtn);
-});
-
 // Initialize the dashboard
-console.log("About to call init()");
-init().catch(error => {
-  console.error("Error in init():", error);
-});
+init();
 
