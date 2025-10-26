@@ -1,10 +1,10 @@
-# Growfolio
+# GrowFolio
 
 AI-powered investment advisor Chrome extension that helps you make smarter financial decisions using machine learning and Google's Gemini AI.
 
-## What is Growfolio?
+## What is GrowFolio?
 
-Growfolio is a Chrome extension that provides personalized investment recommendations based on your financial profile, risk tolerance, and investment goals. It combines:
+GrowFolio is a Chrome extension that provides personalized investment recommendations based on your financial profile, risk tolerance, and investment goals. It combines:
 
 - **Machine Learning Models**: LSTM neural networks trained on historical data to predict short-term trading signals
 - **Google Gemini AI**: Natural language explanations and long-term portfolio recommendations
@@ -36,7 +36,7 @@ Quick overview:
 2. Open Chrome and go to `chrome://extensions/`
 3. Enable Developer mode and click "Load unpacked"
 4. Select the `frontend` folder
-5. Start using Growfolio!
+5. Start using GrowFolio!
 
 
 ## How It Works
@@ -95,7 +95,7 @@ The machine learning models used for day trading predictions are publicly availa
 
 ## Important Notes
 
-- Growfolio is for educational purposes
+- GrowFolio is for educational purposes
 - Always do your own research before making investment decisions
 - Past performance doesn't guarantee future results
 - Consult with a financial advisor for professional advice

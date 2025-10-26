@@ -1,6 +1,6 @@
-# Growfolio Installation Instructions
+# GrowFolio Installation Instructions
 
-Step-by-step guide to install and use the Growfolio Chrome extension.
+Step-by-step guide to install and use the GrowFolio Chrome extension.
 
 ## Prerequisites
 
@@ -44,13 +44,13 @@ The extension connects to a backend server hosted on Railway. The backend is alr
    - Click "Select Folder" (or "Open" on Mac)
 
 4. **Verify Installation**:
-   - You should see "Growfolio" appear in your extensions list
-   - Look for the Growfolio icon in Chrome's toolbar
+   - You should see "GrowFolio" appear in your extensions list
+   - Look for the GrowFolio icon in Chrome's toolbar
 
-## Step 4: Start Using Growfolio
+## Step 4: Start Using GrowFolio
 
 1. **Open the Extension**:
-   - Click the Growfolio icon in your Chrome toolbar
+   - Click the GrowFolio icon in your Chrome toolbar
    - Or use the puzzle piece icon to access pinned extensions
 
 2. **Complete the Questionnaire**:
