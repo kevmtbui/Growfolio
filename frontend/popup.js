@@ -32,10 +32,6 @@ const SLIDES = [
         key: "horizon", text: "Planned investment horizon", type: "dropdown",
         options: ["<1 year", "1-3 years", "3-7 years", "7-15 years", "15+ years"]
       },
-      {
-        key: "retire_age", text: "If retirement, at what age would you like to retire?", type: "int", min: 18, max: 120,
-        conditional: { key: "primary_goal", equals: "Retirement" }
-      },
       // CHANGED: slider now 1–100 (percent)
       { key: "invest_pct", text: "How much of your net savings are you willing to invest?", type: "slider", min: 1, max: 100 },
       { key: "risk_scale", text: "Preference: steady vs. higher returns (1-5)", type: "scale", min: 1, max: 5 }

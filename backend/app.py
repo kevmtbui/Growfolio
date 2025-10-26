@@ -75,11 +75,10 @@ QUESTION_SECTIONS = [
         "questions": [
             {"id": 7, "text": "What's your primary investment goal?", "type": "multiple_choice",
              "options": ["Retirement", "Short-term trading"]},
-            {"id": 8, "text": "How long do you plan to keep this money invested?", "type": "dropdown",
-             "options": ["<1 year", "1-3 years", "3-7 years", "7-15 years", "15+ years"]},
-            {"id": 9, "text": "If retirement, at what age would you like to retire?", "type": "int"},
-            {"id": 10, "text": "How much of your net savings are you willing to invest?", "type": "slider", "min": 0, "max": 100},
-            {"id": 11, "text": "Would you prefer steady growth or higher potential returns (which results in more ups and downs)?", "type": "scale", "min": 1, "max": 5}
+        {"id": 8, "text": "How long do you plan to keep this money invested?", "type": "dropdown",
+         "options": ["<1 year", "1-3 years", "3-7 years", "7-15 years", "15+ years"]},
+        {"id": 10, "text": "How much of your net savings are you willing to invest?", "type": "slider", "min": 0, "max": 100},
+        {"id": 11, "text": "Would you prefer steady growth or higher potential returns (which results in more ups and downs)?", "type": "scale", "min": 1, "max": 5}
         ]
     },
     {   "id": 3,
