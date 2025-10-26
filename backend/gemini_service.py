@@ -303,10 +303,14 @@ def explain_stock(stock_name: str, user_profile: dict, ml_output: dict) -> str:
     """
     Uses Gemini to convert ML prediction + user profile into plain-language recommendation
     """
+    from prompts import SYSTEM_POLICY_STOCK_EXPLANATION
+    
     prompt = f"""
+    {SYSTEM_POLICY_STOCK_EXPLANATION}
+    
     User profile: {json.dumps(user_profile)}
     ML output: {json.dumps(ml_output)}
-    Explain why stock {stock_name} is suitable or not for this user in plain English.
+    Stock: {stock_name}
     """
     model = genai.GenerativeModel("models/gemini-2.5-flash")
     response = model.generate_content(prompt)
