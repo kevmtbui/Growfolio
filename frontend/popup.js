@@ -499,6 +499,19 @@ async function getTraderAnalysis(userProfile, traderType) {
 
 /* Buttons */
 backBtn.addEventListener("click", () => {
+  // If we're on the last slide and processing, cancel processing and go back
+  if (slideIndex === SLIDES.length - 1 && nextBtn.disabled && nextBtn.textContent === "Processing...") {
+    // Cancel processing
+    nextBtn.disabled = false;
+    nextBtn.textContent = "Finish";
+    nextBtn.classList.remove("processing");
+    container.innerHTML = "";
+    output.classList.add("hidden");
+    renderSlide();
+    return;
+  }
+  
+  // Normal back button logic
   if (slideIndex === 0) return;
   clearError();
   slideIndex -= 1;
