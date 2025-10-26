@@ -28,6 +28,49 @@ const riskName = (r) => {
 
   console.log("Dashboard loaded data:", { userData, recommendedRisk, investable, userProfile, traderType, analysisData });
 
+  // Show AI generating message if no analysis data yet
+  if (!analysisData) {
+    const recsList = $("recsList");
+    const insight = $("insight");
+    
+    insight.textContent = "Generating recommendations...";
+    recsList.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; animation: fadeInUp 0.6s ease-out;">
+        <h3 style="margin-bottom: 10px; font-size: 16px;">AI Generating Stock Recommendations</h3>
+        <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">Analyzing market data and your profile</p>
+        <div style="display: flex; justify-content: center; gap: 6px;">
+          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
+          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
+        </div>
+      </div>
+    `;
+    
+    // Try to generate analysis if we have profile data
+    if (userProfile && traderType && userData) {
+      try {
+        const response = await fetch(`${API_BASE}/analyze_trader_type`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_data: userData,
+            user_profile: userProfile,
+            trader_type: traderType
+          })
+        });
+
+        if (response.ok) {
+          const newAnalysisData = await response.json();
+          await chrome.storage.local.set({ analysisData: newAnalysisData });
+          await renderTraderSpecificContent(traderType, newAnalysisData, userProfile);
+        }
+      } catch (error) {
+        console.error('Failed to generate analysis:', error);
+        insight.textContent = "Failed to generate recommendations. Please try refreshing.";
+      }
+    }
+  }
+
   // Derive stats
   const income = Number(userData?.income || 0);
   const expenses = Number(userData?.total_expenses || 0);
@@ -68,11 +111,6 @@ const riskName = (r) => {
   $("btnUpdateProfile").addEventListener("click", () => {
     window.location.href = "popup.html";
   });
-
-  // Back button
-  $("btnSettings").addEventListener("click", () => {
-    window.location.href = "popup.html";
-  });
 })();
 
 async function refreshRecommendations() {
@@ -106,7 +144,6 @@ async function refreshRecommendations() {
     insight.textContent = "Refreshing analysis...";
     recsList.innerHTML = `
       <div style="text-align: center; padding: 40px 20px; animation: fadeInUp 0.6s ease-out;">
-        <div style="font-size: 48px; margin-bottom: 20px; animation: pulse 2s ease-in-out infinite;">🤖</div>
         <h3 style="margin-bottom: 10px; font-size: 16px;">AI Generating Updated Recommendations</h3>
         <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">Analyzing latest market data and your profile</p>
         <div style="display: flex; justify-content: center; gap: 6px;">

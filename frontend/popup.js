@@ -522,17 +522,30 @@ nextBtn.addEventListener("click", async () => {
     container.innerHTML = "";
     output.innerHTML = `
       <div style="text-align: center; padding: 60px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center; animation: fadeInUp 0.6s ease-out;">
-        <div style="font-size: 72px; margin-bottom: 30px; animation: pulse 2s ease-in-out infinite;">🤖</div>
         <h2 style="margin-bottom: 15px; font-size: 20px; animation: slideInUp 0.8s ease-out 0.2s both;">AI Generating Stock Recommendations</h2>
         <p class="muted" style="font-size: 14px; margin-bottom: 30px; animation: slideInUp 0.8s ease-out 0.4s both;">Our AI is analyzing market data and your profile to find the best investment opportunities for you</p>
-        <div style="display: flex; justify-content: center; gap: 8px; margin-top: 20px;">
+        <div style="display: flex; justify-content: center; gap: 8px; margin-top: 20px; margin-bottom: 30px;">
           <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
           <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
           <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
         </div>
+        <button id="cancelBtn" style="background: transparent; border: 2px solid var(--border); color: var(--muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;">Cancel</button>
       </div>
     `;
     output.classList.remove("hidden");
+    
+    // Add cancel button functionality
+    const cancelBtn = document.getElementById('cancelBtn');
+    cancelBtn.addEventListener('click', () => {
+      // Reset everything and go back to form
+      nextBtn.disabled = false;
+      nextBtn.classList.remove('processing');
+      nextBtn.textContent = 'Finish';
+      backBtn.style.display = "block";
+      container.innerHTML = "";
+      output.classList.add("hidden");
+      renderSlide();
+    });
     
     // Compute risk and create profile
     try {
