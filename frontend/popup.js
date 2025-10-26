@@ -86,7 +86,14 @@ const goDashRow = document.getElementById("goDashRow");
 const goDashboardBtn = document.getElementById("goDashboardBtn");
 
 // Restore stored progress
-chrome.storage.local.get(["userData", "currentSlide", "userProfile"], (st) => {
+chrome.storage.local.get(["userData", "currentSlide", "userProfile", "traderType", "analysisData"], (st) => {
+  // If user has completed the form and has recommendations, go straight to dashboard
+  if (st.traderType && st.analysisData && st.userProfile) {
+    window.location.href = "dashboard.html";
+    return;
+  }
+  
+  // Otherwise, restore progress and show form
   if (st.userData) answers = st.userData;
   if (Number.isInteger(st.currentSlide)) slideIndex = Math.min(st.currentSlide, SLIDES.length - 1);
   if (st.userProfile) userProfile = st.userProfile;
