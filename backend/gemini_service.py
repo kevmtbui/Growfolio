@@ -222,52 +222,84 @@ def create_retirement_portfolio(user_profile: dict) -> dict:
     income = user_profile.get("income", 0)
     expenses = user_profile.get("expenses", 0)
     
-    prompt = f"""
-    You are a certified financial planner creating a retirement portfolio allocation for a client.
-    
-    Client Profile:
-    - Age: {age}
-    - Investment Horizon: {horizon_years} years
-    - Risk Score: {risk_score}/10
-    - Monthly Income: ${income}
-    - Monthly Expenses: ${expenses}
-    - Disposable Income: ${income - expenses}
-    
-    Create a detailed portfolio allocation that includes:
-    1. Asset allocation percentages (stocks, bonds, cash, alternatives)
-    2. Specific ETF/fund recommendations for each category
-    3. Rationale for the allocation
-    4. Rebalancing schedule
-    5. Risk management considerations
-    
-    Return your response as a structured JSON with the following format:
-    {{
-        "asset_allocation": {{
-            "stocks": {{"percentage": 60, "recommendations": ["VTI", "VEA"]}},
-            "bonds": {{"percentage": 30, "recommendations": ["BND", "AGG"]}},
-            "cash": {{"percentage": 10, "recommendations": ["Money Market"]}}
-        }},
-        "rationale": "Detailed explanation of why this allocation fits the client",
-        "rebalancing": "Quarterly or annual rebalancing schedule",
-        "risk_notes": "Key risk considerations and mitigation strategies"
-    }}
-    """
+    prompt = f"""Create a retirement portfolio allocation for a client with the following profile:
+Age: {age}, Investment Horizon: {horizon_years} years, Risk Score: {risk_score}/10, Monthly Income: ${income}, Monthly Expenses: ${expenses}
+
+Respond ONLY with valid JSON in this exact format (no markdown, no explanations outside the JSON):
+{{
+    "asset_allocation": {{
+        "stocks": {{"percentage": 60, "recommendations": ["VTI (Vanguard Total Stock Market ETF)", "VEA (Vanguard FTSE Developed Markets ETF)"]}},
+        "bonds": {{"percentage": 30, "recommendations": ["BND (Vanguard Total Bond Market ETF)", "AGG (iShares Core U.S. Aggregate Bond ETF)"]}},
+        "cash": {{"percentage": 10, "recommendations": ["Money Market Fund"]}}
+    }},
+    "rationale": "Brief 2-3 sentence explanation of why this allocation fits the client's profile and goals",
+    "rebalancing": "Rebalancing schedule recommendation",
+    "risk_notes": "Key risk considerations"
+}}"""
     
     model = genai.GenerativeModel("models/gemini-2.5-flash")
     response = model.generate_content(prompt)
     
     try:
         # Try to parse Gemini output as JSON
-        portfolio = json.loads(response.text)
+        # Remove markdown code blocks if present
+        text = response.text.strip()
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+        
+        portfolio = json.loads(text)
     except:
-        # Fallback: return structured data with raw text
+        # Fallback: return structured data with cleaned text
+        # Clean up the response text - remove markdown formatting and prompt echoes
+        cleaned_text = response.text.strip()
+        
+        # Remove markdown headers and formatting
+        cleaned_text = cleaned_text.replace("**", "")
+        cleaned_text = cleaned_text.replace("##", "")
+        cleaned_text = cleaned_text.replace("* ", "")
+        
+        # Remove any lines that look like they're echoing the prompt
+        lines = cleaned_text.split('\n')
+        content_lines = []
+        skip_prompt_echo = False
+        
+        for line in lines:
+            # Skip lines that are clearly from the prompt/system message
+            if any(phrase in line.lower() for phrase in [
+                "as a certified financial planner",
+                "client profile summary",
+                "**client profile",
+                "you are a certified"
+            ]):
+                skip_prompt_echo = True
+                continue
+            
+            # Skip bullet points that are just restating the profile
+            if skip_prompt_echo and (line.strip().startswith("*") or line.strip().startswith("-")):
+                continue
+            
+            # Once we hit actual content, stop skipping
+            if line.strip() and not line.strip().startswith("*") and not line.strip().startswith("-"):
+                skip_prompt_echo = False
+            
+            if line.strip() and not skip_prompt_echo:
+                content_lines.append(line)
+        
+        cleaned_text = '\n'.join(content_lines).strip()
+        
+        # If still too verbose or empty, use a simple fallback
+        if len(cleaned_text) > 1000 or len(cleaned_text) < 50:
+            cleaned_text = f"Balanced portfolio allocation designed for moderate risk tolerance with a {horizon_years}-year investment horizon. Diversified across stocks, bonds, and cash to optimize growth while managing volatility."
+        
         portfolio = {
             "asset_allocation": {
-                "stocks": {"percentage": 60, "recommendations": ["VTI", "VEA"]},
-                "bonds": {"percentage": 30, "recommendations": ["BND", "AGG"]},
-                "cash": {"percentage": 10, "recommendations": ["Money Market"]}
+                "stocks": {"percentage": 60, "recommendations": ["VTI (Vanguard Total Stock Market ETF)", "VEA (Vanguard FTSE Developed Markets ETF)"]},
+                "bonds": {"percentage": 30, "recommendations": ["BND (Vanguard Total Bond Market ETF)", "AGG (iShares Core U.S. Aggregate Bond ETF)"]},
+                "cash": {"percentage": 10, "recommendations": ["Money Market Fund"]}
             },
-            "rationale": response.text,
+            "rationale": cleaned_text,
             "rebalancing": "Annual rebalancing recommended",
             "risk_notes": "Monitor portfolio quarterly and adjust based on market conditions"
         }

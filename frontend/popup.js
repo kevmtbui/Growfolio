@@ -26,7 +26,7 @@ const SLIDES = [
     questions: [
       {
         key: "primary_goal", text: "Primary investment goal", type: "multiple_choice",
-        options: ["Retirement", "Short-term trading", "Supplemental Income"]
+        options: ["Retirement", "Short-term trading"]
       },
       {
         key: "horizon", text: "Planned investment horizon", type: "dropdown",
@@ -344,17 +344,20 @@ function computeRisk() {
   if (investable <= 0) warnings.push("Your expenses are equal to or higher than income — consider pausing investing until cash flow is positive.");
   if (runway < 3) warnings.push(`Emergency fund is low (~${runway.toFixed(1)} months). Aim for 3–6 months before taking higher risk.`);
 
-  let msg = `<strong>Risk level:</strong> ${risk}/10<br>`;
+  // Always show risk info in green
+  let msg = `<div class="risk-info">`;
+  msg += `<strong>Risk level:</strong> ${risk}/10<br>`;
   msg += `<strong>Investable (monthly):</strong> $${fmt(investable)}<br>`;
-  msg += `<strong>Suggested allocation cap:</strong> $${fmt(suggested)} (${Math.round(cap * 100)}%)<br>`;
+  msg += `<strong>Suggested allocation cap:</strong> $${fmt(suggested)} (${Math.round(cap * 100)}%)`;
+  msg += `</div>`;
+  
+  // Show warnings in red if present
   if (warnings.length) {
-    msg += `<br><em>${warnings.join(" ")}</em>`;
-    output.classList.add("error");
-  } else {
-    output.classList.remove("error");
+    msg += `<div class="warning-info"><br><em>${warnings.join(" ")}</em></div>`;
   }
+  
   output.innerHTML = msg;
-  output.classList.remove("hidden");
+  output.classList.remove("hidden", "error");
 
   chrome.storage.local.set({ userData: answers, recommendedRisk: risk, investable, suggested });
 }
@@ -474,6 +477,7 @@ nextBtn.addEventListener("click", async () => {
     // Show loading state
     nextBtn.disabled = true;
     nextBtn.textContent = "Processing...";
+    nextBtn.classList.add("processing");
     container.innerHTML = "";
     output.innerHTML = `
       <div style="text-align: center; padding: 60px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center;">

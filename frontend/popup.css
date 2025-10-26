@@ -44,9 +44,9 @@ html, body {
 }
 
 #logo {
-  width: 120px;
+  width: 240px;
   height: auto;
-  border-radius: 10px;
+  border-radius: 16px;
 }
 
 #stepper {
@@ -223,10 +223,12 @@ input:focus-visible, select:focus-visible, button:focus-visible {
   color: #2a6f2a;
 }
 
-#output.error {
-  background: #fdecea;
+#output .risk-info {
+  color: #2a6f2a;
+}
+
+#output .warning-info {
   color: #9e1c1c;
-  border-left-color: #9e1c1c;
 }
 
 #goDashRow {
@@ -261,4 +263,18 @@ input:focus-visible, select:focus-visible, button:focus-visible {
   font-size: 18px;
   color: var(--brand);
   font-weight: bold;
+}
+
+/* Processing button animation */
+@keyframes processing-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+button.processing {
+  animation: processing-pulse 1.5s ease-in-out infinite;
 }

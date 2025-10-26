@@ -53,30 +53,137 @@ const riskName = (r) => {
   await renderTraderSpecificContent(traderType, analysisData, userProfile);
 
   // Footer actions
-  $("btnRefresh").addEventListener("click", async () => {
-    await refreshAnalysis();
-  });
-
-  $("btnSave").addEventListener("click", async () => {
-    // simple toast replacement
-    alert("Saved ✓ (You can persist starred tickers or preferences here.)");
-  });
-
   $("btnExport").addEventListener("click", async () => {
-    const all = await chrome.storage.local.get(null);
-    const blob = new Blob([JSON.stringify(all, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
+    await exportToPDF();
+  });
 
-    // trigger download within extension context
+  // Back button
+  $("btnSettings").addEventListener("click", () => {
+    window.location.href = "popup.html";
+  });
+})();
+
+async function exportToPDF() {
+  try {
+    const { userData, recommendedRisk, userProfile, traderType, analysisData } = await chrome.storage.local.get([
+      "userData", "recommendedRisk", "userProfile", "traderType", "analysisData"
+    ]);
+
+    // Create formatted text content for PDF
+    let content = "GROWFOLIO INVESTMENT REPORT\n";
+    content += "=".repeat(50) + "\n\n";
+    
+    content += "PROFILE SUMMARY\n";
+    content += "-".repeat(50) + "\n";
+    content += `Income: $${fmt(userData?.income || 0)}/mo\n`;
+    content += `Expenses: $${fmt(userData?.total_expenses || 0)}/mo\n`;
+    content += `Savings: $${fmt(userData?.savings || 0)}\n`;
+    content += `Risk Profile: ${riskName(recommendedRisk || 5)}\n`;
+    content += `Trader Type: ${traderType ? traderType.replace('_', ' ').toUpperCase() : 'N/A'}\n\n`;
+    
+    content += "RECOMMENDATIONS\n";
+    content += "-".repeat(50) + "\n";
+    
+    if (traderType === "day_trader" && analysisData?.analysis?.predictions) {
+      // Day trader with ML predictions
+      for (let i = 0; i < analysisData.analysis.predictions.length; i++) {
+        const pred = analysisData.analysis.predictions[i];
+        const explanation = await explain(pred.ticker, userProfile, pred);
+        const rationale = explanation || `${pred.action.toUpperCase()} signal based on ML analysis`;
+        
+        content += `\n${i + 1}. ${pred.ticker} - ${pred.action.toUpperCase()}\n`;
+        content += `   Confidence: ${pred.confidence}%\n`;
+        if (pred.current_price) content += `   Current Price: $${pred.current_price.toFixed(2)}\n`;
+        if (pred.target_buy) content += `   Buy Target: $${pred.target_buy.toFixed(2)}\n`;
+        if (pred.target_sell) content += `   Sell Target: $${pred.target_sell.toFixed(2)}\n`;
+        content += `   AI Feedback: ${rationale}\n`;
+      }
+      
+      // Add market insights
+      if (analysisData.analysis.market_sentiment) {
+        content += `\n\nMARKET INSIGHTS\n`;
+        content += `-`.repeat(50) + "\n";
+        content += `Market Sentiment: ${analysisData.analysis.market_sentiment}\n`;
+        content += `Volatility Level: ${analysisData.analysis.volatility_level}\n`;
+        content += `Recommended Position Size: ${analysisData.analysis.recommended_position_size}\n`;
+      }
+    } else if (analysisData?.analysis?.portfolio) {
+      // Advanced portfolio format
+      for (let i = 0; i < analysisData.analysis.portfolio.length; i++) {
+        const item = analysisData.analysis.portfolio[i];
+        content += `\n${i + 1}. ${item.asset} - ${(item.weight * 100).toFixed(1)}%\n`;
+        content += `   ${item.name}\n`;
+        content += `   ${item.notes}\n`;
+        if (item.reasons && item.reasons.length > 0) {
+          content += `   Reasons: ${item.reasons.join(", ")}\n`;
+        }
+      }
+      
+      // Add comprehensive explanation
+      if (analysisData.analysis.explanation) {
+        content += `\n\nPORTFOLIO STRATEGY\n`;
+        content += `-`.repeat(50) + "\n";
+        content += `Risk Profile: ${analysisData.analysis.risk?.title || "Moderate"} (${analysisData.analysis.risk?.score || 5}/10)\n`;
+        content += `Jurisdiction: ${analysisData.analysis.jurisdiction || "CA"}\n\n`;
+        content += analysisData.analysis.explanation + "\n";
+      }
+    } else if (analysisData?.analysis?.asset_allocation) {
+      // Basic allocation format - fetch AI feedback for each ETF
+      const allocation = analysisData.analysis.asset_allocation;
+      let itemNum = 1;
+      
+      for (const [assetClass, data] of Object.entries(allocation)) {
+        if (data.recommendations && Array.isArray(data.recommendations)) {
+          const percentPerETF = data.percentage / data.recommendations.length;
+          
+          for (const rec of data.recommendations) {
+            const ticker = rec.split(' ')[0].replace(/[()]/g, '');
+            const explanation = await explain(ticker, userProfile);
+            const rationale = explanation || `${assetClass} allocation for diversification and ${assetClass === 'stocks' ? 'growth' : 'stability'}.`;
+            
+            content += `\n${itemNum}. ${ticker} - ${percentPerETF.toFixed(1)}%\n`;
+            content += `   ${rec}\n`;
+            content += `   Asset Class: ${assetClass.toUpperCase()}\n`;
+            content += `   AI Feedback: ${rationale}\n`;
+            itemNum++;
+          }
+        }
+      }
+      
+      // Add rationale
+      if (analysisData.analysis.rationale) {
+        content += `\n\nPORTFOLIO STRATEGY\n`;
+        content += `-`.repeat(50) + "\n";
+        // Clean up rationale text
+        let cleanRationale = analysisData.analysis.rationale;
+        cleanRationale = cleanRationale.replace(/```json[\s\S]*?```/g, '');
+        cleanRationale = cleanRationale.replace(/```[\s\S]*?```/g, '');
+        const sentences = cleanRationale.split(/[.!?]+/).filter(s => s.trim().length > 20);
+        const summary = sentences.slice(0, 3).join('. ').trim() + (sentences.length > 0 ? '.' : '');
+        content += summary + "\n";
+      }
+    }
+    
+    content += "\n" + "=".repeat(50) + "\n";
+    content += `Generated: ${new Date().toLocaleString()}\n`;
+    
+    // Create blob and download
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "growfolio-export.json";
+    a.download = `growfolio-report-${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-  });
-})();
+    
+    alert("Report exported successfully! ✓");
+  } catch (error) {
+    console.error("Export error:", error);
+    alert(`Failed to export: ${error.message}`);
+  }
+}
 
 async function renderTraderSpecificContent(traderType, analysisData, userProfile) {
   const recsList = $("recsList");

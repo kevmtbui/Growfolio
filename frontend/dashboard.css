@@ -57,9 +57,9 @@ body {
 }
 
 .logo {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
+  height: 44px;
+  width: auto;
+  border-radius: 8px;
 }
 
 .title {
@@ -187,8 +187,25 @@ h2 {
 
 .footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+}
+
+.primary {
+  background: var(--brand);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.primary:hover {
+  filter: brightness(1.1);
 }
 
 /* Scroll behavior: the popup window itself scrolls; no extra container needed */
