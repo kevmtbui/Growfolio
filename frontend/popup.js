@@ -520,8 +520,8 @@ nextBtn.addEventListener("click", async () => {
     nextBtn.textContent = "Processing...";
     nextBtn.classList.add("processing");
     
-    // Hide back button during processing
-    backBtn.style.display = "none";
+    // Keep back button visible during processing
+    backBtn.style.display = "block";
     
     container.innerHTML = "";
     output.innerHTML = `
@@ -533,23 +533,10 @@ nextBtn.addEventListener("click", async () => {
           <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
           <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
         </div>
-        <button id="cancelBtn" style="background: transparent; border: 2px solid var(--border); color: var(--muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;">Cancel</button>
       </div>
     `;
     output.classList.remove("hidden");
     
-    // Add cancel button functionality
-    const cancelBtn = document.getElementById('cancelBtn');
-    cancelBtn.addEventListener('click', () => {
-      // Reset everything and go back to form
-      nextBtn.disabled = false;
-      nextBtn.classList.remove('processing');
-      nextBtn.textContent = 'Finish';
-      backBtn.style.display = "block";
-      container.innerHTML = "";
-      output.classList.add("hidden");
-      renderSlide();
-    });
     
     // Compute risk and create profile
     try {
