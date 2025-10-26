@@ -104,7 +104,18 @@ async function refreshRecommendations() {
     `;
     
     insight.textContent = "Refreshing analysis...";
-    recsList.innerHTML = '<div style="text-align: center; padding: 20px;">Loading updated recommendations...</div>';
+    recsList.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; animation: fadeInUp 0.6s ease-out;">
+        <div style="font-size: 48px; margin-bottom: 20px; animation: pulse 2s ease-in-out infinite;">🤖</div>
+        <h3 style="margin-bottom: 10px; font-size: 16px;">AI Generating Updated Recommendations</h3>
+        <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">Analyzing latest market data and your profile</p>
+        <div style="display: flex; justify-content: center; gap: 6px;">
+          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
+          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
+        </div>
+      </div>
+    `;
 
     // Call backend to get fresh analysis
     const response = await fetch(`${API_BASE}/analyze_trader_type`, {

@@ -515,12 +515,21 @@ nextBtn.addEventListener("click", async () => {
     nextBtn.disabled = true;
     nextBtn.textContent = "Processing...";
     nextBtn.classList.add("processing");
+    
+    // Hide back button during processing
+    backBtn.style.display = "none";
+    
     container.innerHTML = "";
     output.innerHTML = `
-      <div style="text-align: center; padding: 60px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center;">
-        <div style="font-size: 72px; margin-bottom: 30px;">⏳</div>
-        <h2 style="margin-bottom: 15px; font-size: 20px;">Loading Recommendations</h2>
-        <p class="muted" style="font-size: 14px; margin-bottom: 30px;">Analyzing your profile and generating personalized investment recommendations</p>
+      <div style="text-align: center; padding: 60px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center; animation: fadeInUp 0.6s ease-out;">
+        <div style="font-size: 72px; margin-bottom: 30px; animation: pulse 2s ease-in-out infinite;">🤖</div>
+        <h2 style="margin-bottom: 15px; font-size: 20px; animation: slideInUp 0.8s ease-out 0.2s both;">AI Generating Stock Recommendations</h2>
+        <p class="muted" style="font-size: 14px; margin-bottom: 30px; animation: slideInUp 0.8s ease-out 0.4s both;">Our AI is analyzing market data and your profile to find the best investment opportunities for you</p>
+        <div style="display: flex; justify-content: center; gap: 8px; margin-top: 20px;">
+          <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+          <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
+          <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
+        </div>
       </div>
     `;
     output.classList.remove("hidden");
@@ -537,7 +546,7 @@ nextBtn.addEventListener("click", async () => {
     } catch (e) {
       // Show error if profile creation fails
       output.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
+        <div style="text-align: center; padding: 20px; animation: shake 0.5s ease-in-out;">
           <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
           <h3 style="margin-bottom: 10px; color: #9e1c1c;">Error Creating Profile</h3>
           <p class="muted">${String(e)}</p>
@@ -546,6 +555,9 @@ nextBtn.addEventListener("click", async () => {
       `;
       nextBtn.disabled = false;
       nextBtn.textContent = "Finish";
+      
+      // Show back button again on error
+      backBtn.style.display = "block";
     }
     return;
   }
