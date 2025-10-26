@@ -1,3 +1,7 @@
+/* Import external stylesheets */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css');
+
 :root {
   --bg: #F5F7FA;
   --fg: #0A0A0A;
@@ -31,7 +35,7 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--fg);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
 }
 
 .app {
