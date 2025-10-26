@@ -351,7 +351,7 @@ async function renderRetirementInvestorContent(analysisData, userProfile) {
           </div>
           <div class="conf">${rec.percentage}% allocation</div>
         </div>
-        <p class="muted"><strong>${rec.name.split('(')[0].trim()}</strong></p>
+        <p class="muted"><strong>${rec.name.replace(rec.ticker, '').trim()}</strong></p>
         <p class="muted">${rationale}</p>
       `;
       recsList.appendChild(card);

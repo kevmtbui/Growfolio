@@ -106,97 +106,105 @@ function renderSlide() {
   output.classList.add("hidden");
   output.textContent = "";
   goDashRow.classList.add("hidden");
-  container.innerHTML = "";
+  
+  // Add fade out animation
+  container.style.opacity = '0';
+  container.style.transform = 'translateY(20px)';
+  
+  setTimeout(() => {
+    container.innerHTML = "";
+    const s = SLIDES[slideIndex];
+    let fieldIndex = 0;
 
-  const s = SLIDES[slideIndex];
-
-  for (const q of s.questions) {
-    // conditional question (retire_age)
-    if (q.conditional) {
-      const dep = answers[q.conditional.key];
-      if (dep !== q.conditional.equals) continue;
-    }
-
-    const wrap = document.createElement("div");
-    wrap.className = "field";
-    wrap.dataset.key = q.key;
-
-    // label
-    const label = document.createElement("label");
-    label.textContent = q.text;
-    wrap.appendChild(label);
-    if (q.sub) {
-      const sm = document.createElement("small");
-      sm.textContent = q.sub;
-      wrap.appendChild(sm);
-    }
-
-    // control by type
-    if (q.type === "multiple_choice" || q.type === "dropdown") {
-      const sel = document.createElement("select");
-      sel.className = "q-input";
-      sel.name = q.key;
-      const def = document.createElement("option");
-      def.value = ""; def.textContent = "Select an option"; def.disabled = true; def.selected = true;
-      sel.appendChild(def);
-      for (const opt of q.options) {
-        const o = document.createElement("option");
-        o.value = opt; o.textContent = opt;
-        sel.appendChild(o);
-      }
-      if (answers[q.key]) sel.value = String(answers[q.key]);
-      wrap.appendChild(sel);
-
-    } else if (q.type === "int" || q.type === "float") {
-      const inp = document.createElement("input");
-      inp.type = "number";
-      inp.className = "q-input";
-      inp.name = q.key;
-      if (q.min !== undefined) inp.min = String(q.min);
-      if (q.max !== undefined) inp.max = String(q.max);
-      inp.step = (q.type === "int") ? "1" : "0.01";
-      inp.inputMode = "decimal";
-      if (answers[q.key] !== undefined) inp.value = String(answers[q.key]);
-      wrap.appendChild(inp);
-
-    } else if (q.type === "slider" || q.type === "scale") {
-      // FIXED: correct percent label handling (no innerHTML mutation)
-      const min = q.min ?? 1, max = q.max ?? 5;
-
-      const rw = document.createElement("div");
-      rw.className = "range-wrap";
-
-      const rng = document.createElement("input");
-      rng.type = "range";
-      rng.min = String(min);
-      rng.max = String(max);
-      rng.step = "1";
-      rng.className = "q-input";
-      rng.name = q.key;
-      rng.value = String(answers[q.key] ?? min);
-
-      const val = document.createElement("div");
-      val.className = "range-value";
-
-      const span = document.createElement("span");
-      span.id = `range-${q.key}`;
-      span.textContent = String(rng.value);
-
-      val.appendChild(span);
-      if (q.type === "slider") {
-        // Append a text node for '%' once — prevents duplicate digits like "1001%"
-        val.appendChild(document.createTextNode("%"));
+    for (const q of s.questions) {
+      // conditional question (retire_age)
+      if (q.conditional) {
+        const dep = answers[q.conditional.key];
+        if (dep !== q.conditional.equals) continue;
       }
 
-      rng.addEventListener("input", () => {
+      const wrap = document.createElement("div");
+      wrap.className = "field";
+      wrap.dataset.key = q.key;
+      wrap.style.opacity = '0';
+      wrap.style.transform = 'translateY(20px)';
+
+      // label
+      const label = document.createElement("label");
+      label.textContent = q.text;
+      wrap.appendChild(label);
+      if (q.sub) {
+        const sm = document.createElement("small");
+        sm.textContent = q.sub;
+        wrap.appendChild(sm);
+      }
+
+      // control by type
+      if (q.type === "multiple_choice" || q.type === "dropdown") {
+        const sel = document.createElement("select");
+        sel.className = "q-input";
+        sel.name = q.key;
+        const def = document.createElement("option");
+        def.value = ""; def.textContent = "Select an option"; def.disabled = true; def.selected = true;
+        sel.appendChild(def);
+        for (const opt of q.options) {
+          const o = document.createElement("option");
+          o.value = opt; o.textContent = opt;
+          sel.appendChild(o);
+        }
+        if (answers[q.key]) sel.value = String(answers[q.key]);
+        wrap.appendChild(sel);
+
+      } else if (q.type === "int" || q.type === "float") {
+        const inp = document.createElement("input");
+        inp.type = "number";
+        inp.className = "q-input";
+        inp.name = q.key;
+        if (q.min !== undefined) inp.min = String(q.min);
+        if (q.max !== undefined) inp.max = String(q.max);
+        inp.step = (q.type === "int") ? "1" : "0.01";
+        inp.inputMode = "decimal";
+        if (answers[q.key] !== undefined) inp.value = String(answers[q.key]);
+        wrap.appendChild(inp);
+
+      } else if (q.type === "slider" || q.type === "scale") {
+        // FIXED: correct percent label handling (no innerHTML mutation)
+        const min = q.min ?? 1, max = q.max ?? 5;
+
+        const rw = document.createElement("div");
+        rw.className = "range-wrap";
+
+        const rng = document.createElement("input");
+        rng.type = "range";
+        rng.min = String(min);
+        rng.max = String(max);
+        rng.step = "1";
+        rng.className = "q-input";
+        rng.name = q.key;
+        rng.value = String(answers[q.key] ?? min);
+
+        const val = document.createElement("div");
+        val.className = "range-value";
+
+        const span = document.createElement("span");
+        span.id = `range-${q.key}`;
         span.textContent = String(rng.value);
-      });
 
-      rw.appendChild(rng);
-      rw.appendChild(val);
-      wrap.appendChild(rw);
+        val.appendChild(span);
+        if (q.type === "slider") {
+          // Append a text node for '%' once — prevents duplicate digits like "1001%"
+          val.appendChild(document.createTextNode("%"));
+        }
 
-    } else if (q.type === "categories") {
+        rng.addEventListener("input", () => {
+          span.textContent = String(rng.value);
+        });
+
+        rw.appendChild(rng);
+        rw.appendChild(val);
+        wrap.appendChild(rw);
+
+      } else if (q.type === "categories") {
       const cats = q.categories || [];
       const grid = document.createElement("div");
       grid.className = "categories"; grid.id = `categories-${q.key}`;
@@ -221,18 +229,33 @@ function renderSlide() {
       updateCategoriesTotal(q.key);
     }
 
-    container.appendChild(wrap);
-  }
+      container.appendChild(wrap);
+      
+      // Staggered animation for each field
+      setTimeout(() => {
+        wrap.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        wrap.style.opacity = '1';
+        wrap.style.transform = 'translateY(0)';
+      }, fieldIndex * 100);
+      
+      fieldIndex++;
+    }
 
-  // buttons state
-  backBtn.style.visibility = (slideIndex === 0) ? "hidden" : "visible";
-  nextBtn.textContent = (slideIndex === SLIDES.length - 1) ? "Finish" : "Next";
-  updateStepper();
+    // Fade in container
+    container.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+    container.style.opacity = '1';
+    container.style.transform = 'translateY(0)';
 
-  // Enter to submit
-  form.onkeydown = (e) => {
-    if (e.key === "Enter") { e.preventDefault(); nextBtn.click(); }
-  };
+    // buttons state
+    backBtn.style.visibility = (slideIndex === 0) ? "hidden" : "visible";
+    nextBtn.textContent = (slideIndex === SLIDES.length - 1) ? "Finish" : "Next";
+    updateStepper();
+
+    // Enter to submit
+    form.onkeydown = (e) => {
+      if (e.key === "Enter") { e.preventDefault(); nextBtn.click(); }
+    };
+  }, 200);
 }
 
 // categories total helper
@@ -491,34 +514,21 @@ nextBtn.addEventListener("click", async () => {
       <div style="text-align: center; padding: 60px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center;">
         <div style="font-size: 72px; margin-bottom: 30px;">⏳</div>
         <h2 style="margin-bottom: 15px; font-size: 20px;">Loading Recommendations</h2>
-        <p class="muted" style="font-size: 14px; margin-bottom: 30px;">Analyzing your profile and generating personalized investment recommendations<span class="loading-dots-text"></span></p>
+        <p class="muted" style="font-size: 14px; margin-bottom: 30px;">Analyzing your profile and generating personalized investment recommendations</p>
       </div>
     `;
     output.classList.remove("hidden");
-    
-    // Animate loading dots
-    const dotsElement = output.querySelector('.loading-dots-text');
-    let dotCount = 0;
-    const dotsInterval = setInterval(() => {
-      dotCount = (dotCount + 1) % 4;
-      dotsElement.textContent = '.'.repeat(dotCount);
-    }, 500);
     
     // Compute risk and create profile
     try {
       computeRisk();
       await createProfile();
       
-      // Clear the dots animation
-      clearInterval(dotsInterval);
-      
       // Small delay to ensure storage is complete before navigation
       setTimeout(() => {
         window.location.href = "dashboard.html";
       }, 100);
     } catch (e) {
-      // Clear the dots animation on error
-      clearInterval(dotsInterval);
       // Show error if profile creation fails
       output.innerHTML = `
         <div style="text-align: center; padding: 20px;">
