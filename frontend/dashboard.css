@@ -44,26 +44,34 @@ body {
   padding: 12px;
 }
 
+/* Header / brand */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px; /* help spacing when logo grows */
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  min-width: 0; /* allow text to shrink instead of pushing buttons */
 }
 
 .logo {
-  height: 44px;
-  width: auto;
-  border-radius: 8px;
+  /* Bigger, responsive logo */
+  width: clamp(140px, 28vw, 200px);
+  height: auto;
+  border-radius: 10px;
+  flex: 0 0 auto; /* do not shrink the image */
 }
 
 .title {
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* keep title tidy next to big logo */
 }
 
 /* Layout helpers */
