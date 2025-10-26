@@ -26,6 +26,8 @@ const riskName = (r) => {
     "userData", "recommendedRisk", "investable", "userProfile", "traderType", "analysisData"
   ]);
 
+  console.log("Dashboard loaded data:", { userData, recommendedRisk, investable, userProfile, traderType, analysisData });
+
   // Derive stats
   const income = Number(userData?.income || 0);
   const expenses = Number(userData?.total_expenses || 0);

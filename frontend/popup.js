@@ -375,7 +375,6 @@ function mapToBackendFormat(answers) {
     "6": answers.age,
     "7": answers.primary_goal,
     "8": answers.horizon,
-    "9": answers.retire_age,
     "10": answers.invest_pct,
     "11": answers.risk_scale,
     "12": answers.drawdown_resp,
@@ -415,12 +414,20 @@ async function createProfile() {
     const traderType = determineTraderType(answers);
     const analysisData = await getTraderAnalysis(userProfile, traderType);
 
-    chrome.storage.local.set({
+    // Store all data with debugging
+    const storageData = {
       userProfile,
       traderType,
       analysisData,
       isAdvancedProfile: !!userProfile && !data.error
-    });
+    };
+    
+    console.log("Storing data:", storageData);
+    await chrome.storage.local.set(storageData);
+    
+    // Verify storage worked
+    const stored = await chrome.storage.local.get(["userProfile", "traderType", "analysisData"]);
+    console.log("Stored data verification:", stored);
 
     // Success - data is stored, will navigate to dashboard
     return true;
