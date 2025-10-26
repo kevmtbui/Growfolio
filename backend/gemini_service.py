@@ -88,13 +88,9 @@ def risk_assesment_score(user: dict) -> float:
     freq_map = {"rarely": 0.20, "monthly": 0.40, "weekly": 0.70, "daily": 1.00}
     check_freq_score = _map(freq_raw, freq_map, 0.40)
 
-    # Debt ratio (monthly debt / income). If you later add a numeric field, read it here.
-    # For now, infer a coarse penalty if user indicates any debt in Q4.
-    debt_raw = str(user.get("4", "")).lower()
-    has_debt = any(k in debt_raw for k in ["credit", "loan", "debt", "mortgage", "car"])
-    # Heuristic: if we don't have monthly payments, approximate a mild penalty when debt exists.
-    # Set debt_ratio=0.30 if debt mentioned; else 0.0. Replace this when you capture a numeric.
-    debt_ratio = 0.30 if has_debt else 0.0
+    # Debt ratio (monthly debt / income) - Q4 is now a numeric field
+    monthly_debt = float(user.get("4", 0) or 0)
+    debt_ratio = monthly_debt / max(1.0, income) if income > 0 else 0.0
 
     # Emergency buffer in months
     monthly_expenses = max(1.0, expenses)  # avoid divide-by-zero
@@ -204,7 +200,7 @@ def create_user_profile(user_data: dict) -> dict:
     elif investment_goal == "supplemental income":
         prompt += ""
     
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
     response = model.generate_content(prompt)
     
     try:
@@ -257,7 +253,7 @@ def create_retirement_portfolio(user_profile: dict) -> dict:
     }}
     """
     
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
     response = model.generate_content(prompt)
     
     try:
@@ -287,6 +283,6 @@ def explain_stock(stock_name: str, user_profile: dict, ml_output: dict) -> str:
     ML output: {json.dumps(ml_output)}
     Explain why stock {stock_name} is suitable or not for this user in plain English.
     """
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
     response = model.generate_content(prompt)
     return response.text

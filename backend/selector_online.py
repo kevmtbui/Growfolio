@@ -28,7 +28,7 @@ def pick_etfs_for_sleeves(jurisdiction: str, sleeves: List[Dict[str, Any]]) -> L
     need = [s for s in sleeves if s["class"] in ("equity","bonds","alts")]
     req = [{"class": s["class"], "subclass": s["subclass"], "jurisdiction": jurisdiction} for s in need]
 
-    model = genai.GenerativeModel("models/gemini-1.5-pro")
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
     chat = model.start_chat(enable_automatic_function_calling=True, tools=GEMINI_TOOLS)
 
     # Seed policy + user request

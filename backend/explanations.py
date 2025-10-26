@@ -12,7 +12,7 @@ def summarize_advice(advice: dict) -> str:
     """
     Use Gemini to turn the structured advice into a clean, concise explanation.
     """
-    model = genai.GenerativeModel("models/gemini-1.5-pro")
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
     prompt = (
         f"{SYSTEM_POLICY_EXPLANATION}\n"
         f"ADVICE_JSON:\n{json.dumps(advice)}"
@@ -24,7 +24,7 @@ def explain_stock_recommendation(stock_name: str, user_profile: dict, ml_output:
     """
     Uses Gemini to convert ML prediction + user profile into plain-language recommendation
     """
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
     prompt = f"""
     {SYSTEM_POLICY_STOCK_EXPLANATION}
     

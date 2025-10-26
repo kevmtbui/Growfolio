@@ -26,8 +26,7 @@ QUESTION_SECTIONS = [
             {"id": 2, "text": "What are your average monthly expenses? (break down by category)", "type": "categories",
              "categories": ["Housing", "Groceries", "Utilities", "Transportation", "Miscellaneous"]},
             {"id": 3, "text": "How much do you currently have in savings or investments?", "type": "float"},
-            {"id": 4, "text": "Do you have any debt or ongoing loan payments?", "type": "multiple_choice",
-             "options": ["None", "Credit cards", "Student loans", "Car loans", "Other"]},
+            {"id": 4, "text": "Total monthly debt/loan payments (enter 0 if none)", "type": "float"},
             {"id": 5, "text": "How many dependents rely on your income?", "type": "int"},
             {"id": 6, "text": "What is your age?", "type": "int"}
         ]
@@ -40,15 +39,15 @@ QUESTION_SECTIONS = [
             {"id": 8, "text": "How long do you plan to keep this money invested?", "type": "dropdown",
              "options": ["<1 year", "1-3 years", "3-7 years", "7-15 years", "15+ years"]},
             {"id": 9, "text": "If retirement, at what age would you like to retire?", "type": "int"},
-            {"id": 10, "text": "How much of your net savings are you willing to invest?", "type": "slider", "min": 1, "max": 100},
-            {"id": 11, "text": "Would you prefer steady growth or higher potential returns (which results in more ups and downs)?", "type": "scale", "min": 1, "max": 5},
-            {"id": 12, "text": "If your investment dropped 20$ one month, what would you most likely do?", "type": "multiple_choice",
-             "options": ["Sell everything", "Sell some", "Do nothing", "Buy more"]}
+            {"id": 10, "text": "How much of your net savings are you willing to invest?", "type": "slider", "min": 0, "max": 100},
+            {"id": 11, "text": "Would you prefer steady growth or higher potential returns (which results in more ups and downs)?", "type": "scale", "min": 1, "max": 5}
         ]
     },
     {   "id": 3,
         "title": "Personal Profile",
         "questions": [
+            {"id": 12, "text": "If your investment dropped 20% in a month, what would you do?", "type": "multiple_choice",
+             "options": ["Sell everything", "Sell some", "Do nothing", "Buy more"]},
             {"id": 13, "text": "How experienced are you with investing?", "type": "multiple_choice",
              "options": ["Beginner", "Intermediate", "Advanced"]},
             {"id": 14, "text": "How often do you check your portfolio or market news?", "type": "multiple_choice",
@@ -173,7 +172,6 @@ async def handle_retirement_analysis_advanced(user_profile: dict):
             "fallback": True,
             "error": str(e)
         }
-
 @app.post("/recommend_stock")
 async def recommend_stock(req: Request):
     """

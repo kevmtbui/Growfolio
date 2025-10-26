@@ -1,5 +1,5 @@
 // ====== GrowFolio Intake (3 slides, compact UI) ======
-const API_BASE = "http://localhost:8001";
+const API_BASE = "http://localhost:8000";
 
 /**
  * 3 slides mirroring your backend sections.
@@ -16,10 +16,7 @@ const SLIDES = [
         categories: ["Housing", "Groceries", "Utilities", "Transportation", "Miscellaneous"]
       },
       { key: "savings", text: "Current savings / investments", type: "float", min: 0, sub: "bank + investments" },
-      {
-        key: "debt_type", text: "Any debt / ongoing loan payments?", type: "multiple_choice",
-        options: ["None", "Credit cards", "Student loans", "Car loans", "Other"]
-      },
+      { key: "monthly_debt", text: "Total monthly debt/loan payments", type: "float", min: 0, sub: "enter 0 if none" },
       { key: "dependents", text: "How many dependents rely on you?", type: "int", min: 0 },
       { key: "age", text: "Your age", type: "int", min: 0, max: 120 }
     ]
@@ -32,11 +29,6 @@ const SLIDES = [
         options: ["Retirement", "Short-term trading", "Supplemental Income"]
       },
       {
-        key: "trader_type", text: "What type of trader are you?", type: "multiple_choice",
-        options: ["Day Trader", "Retirement Investor", "Both"],
-        sub: "This determines the type of analysis you'll receive"
-      },
-      {
         key: "horizon", text: "Planned investment horizon", type: "dropdown",
         options: ["<1 year", "1-3 years", "3-7 years", "7-15 years", "15+ years"]
       },
@@ -44,17 +36,17 @@ const SLIDES = [
         key: "retire_age", text: "If retirement, at what age would you like to retire?", type: "int", min: 18, max: 120,
         conditional: { key: "primary_goal", equals: "Retirement" }
       },
-      { key: "invest_pct", text: "How much of your net savings are you willing to invest?", type: "slider", min: 1, max: 100 },
-      { key: "risk_scale", text: "Preference: steady vs. higher returns (1–5)", type: "scale", min: 1, max: 5 },
-      {
-        key: "drawdown_resp", text: "If your investment dropped 20% in a month, what would you do?", type: "multiple_choice",
-        options: ["Sell everything", "Sell some", "Do nothing", "Buy more"]
-      }
+      { key: "invest_pct", text: "How much of your net savings are you willing to invest?", type: "slider", min: 0, max: 100 },
+      { key: "risk_scale", text: "Preference: steady vs. higher returns (1–5)", type: "scale", min: 1, max: 5 }
     ]
   },
   {
     id: 3, title: "Personal Profile",
     questions: [
+      {
+        key: "drawdown_resp", text: "If your investment dropped 20% in a month, what would you do?", type: "multiple_choice",
+        options: ["Sell everything", "Sell some", "Do nothing", "Buy more"]
+      },
       {
         key: "experience", text: "Investing experience", type: "multiple_choice",
         options: ["Beginner", "Intermediate", "Advanced"]
@@ -346,13 +338,37 @@ function computeRisk() {
   chrome.storage.local.set({ userData: answers, recommendedRisk: risk, investable, suggested });
 }
 
+// Map frontend keys to backend question IDs
+function mapToBackendFormat(answers) {
+  return {
+    "1": answers.income,
+    "2": answers.expenses_breakdown,
+    "3": answers.savings,
+    "4": answers.monthly_debt,
+    "5": answers.dependents,
+    "6": answers.age,
+    "7": answers.primary_goal,
+    "8": answers.horizon,
+    "9": answers.retire_age,
+    "10": answers.invest_pct,
+    "11": answers.risk_scale,
+    "12": answers.drawdown_resp,
+    "13": answers.experience,
+    "14": answers.news_freq,
+    "15": answers.risk_statement,
+    "16": answers.portfolio_pref
+  };
+}
+
 // Create profile (Gemini)
 async function createProfile() {
   try {
+    const backendData = mapToBackendFormat(answers);
+    
     // Try advanced profile first, fallback to basic if it fails
     let resp = await fetch(`${API_BASE}/create_advanced_profile`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(answers)
+      body: JSON.stringify(backendData)
     });
 
     let data = await resp.json();
@@ -363,7 +379,7 @@ async function createProfile() {
       console.log("Advanced profile failed, trying basic profile:", data.error);
       resp = await fetch(`${API_BASE}/create_profile`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers)
+        body: JSON.stringify(backendData)
       });
       data = await resp.json();
       userProfile = data.user_profile || null;
@@ -391,14 +407,9 @@ async function createProfile() {
 }
 
 function determineTraderType(answers) {
-  const traderTypeAnswer = answers.trader_type;
   const primaryGoal = answers.primary_goal;
 
-  if (traderTypeAnswer === "Day Trader") return "day_trader";
-  if (traderTypeAnswer === "Retirement Investor") return "retirement_investor";
-  if (traderTypeAnswer === "Both") return "both";
-
-  // Fallback based on primary goal
+  // Determine based on primary goal
   if (primaryGoal === "Short-term trading") return "day_trader";
   if (primaryGoal === "Retirement") return "retirement_investor";
 

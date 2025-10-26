@@ -1,5 +1,5 @@
 // Dashboard logic: read stored profile, compute stats, fetch explanations
-const API_BASE = "http://localhost:8001";
+const API_BASE = "http://localhost:8000";
 
 const $ = (id) => document.getElementById(id);
 
@@ -8,6 +8,12 @@ const fmt = (n) => {
   if (typeof n !== "number" || !isFinite(n)) return String(n);
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 };
+
+const num = (x) => {
+  const n = Number(x);
+  return Number.isFinite(n) ? n : 0;
+};
+
 const riskName = (r) => {
   if (r <= 3) return "Conservative";
   if (r <= 6) return "Moderate";
@@ -289,7 +295,6 @@ async function refreshAnalysis() {
     insight.textContent = "Failed to refresh analysis. Please try again.";
   }
 }
-
 async function explain(ticker, userProfile) {
   try {
     if (!userProfile) return ""; // will fall back on generic text
@@ -308,3 +313,4 @@ async function explain(ticker, userProfile) {
     return "";
   }
 }
+
