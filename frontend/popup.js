@@ -446,6 +446,33 @@ async function createProfile() {
     const traderType = determineTraderType(answers);
     const analysisData = await getTraderAnalysis(userProfile, traderType);
 
+    // For day traders, generate all explanations before navigating
+    if (traderType === "day_trader" && analysisData?.analysis?.predictions) {
+      console.log("Generating explanations for all stocks...");
+      const predictions = analysisData.analysis.predictions;
+      
+      // Generate all explanations in parallel
+      const explanations = await Promise.all(
+        predictions.map(async (pred) => {
+          try {
+            const explanation = await explain(pred.ticker, userProfile, pred);
+            return { ticker: pred.ticker, explanation };
+          } catch (error) {
+            console.error(`Failed to get explanation for ${pred.ticker}:`, error);
+            return { ticker: pred.ticker, explanation: "" };
+          }
+        })
+      );
+      
+      // Store explanations with the analysis data
+      analysisData.explanations = {};
+      explanations.forEach(({ ticker, explanation }) => {
+        analysisData.explanations[ticker] = explanation;
+      });
+      
+      console.log("All explanations generated:", analysisData.explanations);
+    }
+
     // Store all data with debugging
     const storageData = {
       userProfile,

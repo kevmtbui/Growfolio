@@ -39,4 +39,9 @@ has risk level 8 while your profile shows risk tolerance 7").
 
 Consider their risk tolerance, investment horizon, financial situation, and experience level.
 IMPORTANT: Keep your response to EXACTLY 3 sentences or less. Be direct and actionable.
+
+CRITICAL: Make each explanation unique and specific to the individual stock. Reference 
+the specific ticker symbol, mention relevant company characteristics, and tailor the 
+advice to why THIS particular stock fits (or doesn't fit) their profile. Avoid generic 
+statements that could apply to any stock.
 """

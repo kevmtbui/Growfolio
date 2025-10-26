@@ -84,7 +84,7 @@ async function init() {
 
   // We have analysis data, render the content
   if (analysisData) {
-    await renderTraderSpecificContent(traderType, analysisData, userProfile);
+  await renderTraderSpecificContent(traderType, analysisData, userProfile);
   }
 
   // Footer actions
@@ -131,8 +131,18 @@ async function refreshRecommendations() {
       Refreshing...
     `;
     
-    // Clear recommendations list for refresh
-    recsList.innerHTML = "";
+    // Show loading message during refresh
+    recsList.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; animation: fadeInUp 0.6s ease-out;">
+        <h3 style="margin-bottom: 10px; font-size: 16px;">AI Finding the Best Stocks</h3>
+        <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">Analyzing latest market data and your profile</p>
+        <div style="display: flex; justify-content: center; gap: 6px;">
+          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
+          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
+        </div>
+      </div>
+    `;
 
     // Call backend to get fresh analysis
     const response = await fetch(`${API_BASE}/analyze_trader_type`, {
@@ -150,6 +160,33 @@ async function refreshRecommendations() {
     }
 
     const analysisData = await response.json();
+    
+    // For day traders, generate all explanations before displaying
+    if (traderType === "day_trader" && analysisData?.analysis?.predictions) {
+      console.log("Generating explanations for refreshed stocks...");
+      const predictions = analysisData.analysis.predictions;
+      
+      // Generate all explanations in parallel
+      const explanations = await Promise.all(
+        predictions.map(async (pred) => {
+          try {
+            const explanation = await explain(pred.ticker, userProfile, pred);
+            return { ticker: pred.ticker, explanation };
+          } catch (error) {
+            console.error(`Failed to get explanation for ${pred.ticker}:`, error);
+            return { ticker: pred.ticker, explanation: "" };
+          }
+        })
+      );
+      
+      // Store explanations with the analysis data
+      analysisData.explanations = {};
+      explanations.forEach(({ ticker, explanation }) => {
+        analysisData.explanations[ticker] = explanation;
+      });
+      
+      console.log("All refreshed explanations generated:", analysisData.explanations);
+    }
     
     // Store updated analysis
     await chrome.storage.local.set({ analysisData });
@@ -342,10 +379,16 @@ async function renderDayTraderContent(analysisData, userProfile) {
   if (analysisData?.analysis?.predictions) {
     const predictions = analysisData.analysis.predictions;
 
-    // Generate all explanations first, then display all at once
+    // Use pre-generated explanations or generate them if not available
     const explanations = await Promise.all(
       predictions.map(async (pred) => {
-        const explanation = await explain(pred.ticker, userProfile, pred);
+        // Check if explanation was pre-generated
+        let explanation = analysisData.explanations?.[pred.ticker];
+        
+        // If not pre-generated, generate it now
+        if (!explanation) {
+          explanation = await explain(pred.ticker, userProfile, pred);
+        }
         
         // Add explanation of what BUY/SELL/HOLD means
         let actionExplanation = "";
@@ -449,7 +492,7 @@ async function renderRetirementInvestorContent(analysisData, userProfile) {
   } else if (analysisData?.analysis?.asset_allocation) {
     // Fallback to basic allocation format - show individual ETF recommendations
     const allocation = analysisData.analysis.asset_allocation;
-    
+
     // Extract all ETF recommendations from the allocation
     const allRecommendations = [];
     Object.entries(allocation).forEach(([assetClass, data]) => {
