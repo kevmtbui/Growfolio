@@ -254,6 +254,13 @@ async function renderDayTraderContent(analysisData, userProfile) {
       `;
       recsList.appendChild(card);
     }
+
+    // Show disclaimer after all recommendations
+    const disclaimerCard = document.createElement("div");
+    disclaimerCard.className = "rec";
+    disclaimerCard.style.cssText = "background-color: #FFF3E0; border-left: 3px solid #F57C00;";
+    disclaimerCard.innerHTML = `<p style="margin: 0;"><em>⚠️ These are ML-generated predictions for short-term trading. Always do your own research before making investment decisions.</em></p>`;
+    recsList.appendChild(disclaimerCard);
   } else {
     // Fallback if no analysis data
     recsList.innerHTML = "<p class='muted'>No trading signals available. Please refresh or check your connection.</p>";
