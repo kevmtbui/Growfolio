@@ -1,7 +1,11 @@
 // Dashboard logic: read stored profile, compute stats, fetch explanations
 const API_BASE = "https://growfolio-production.up.railway.app";
 
-const $ = (id) => document.getElementById(id);
+const $ = (id) => {
+  const element = document.getElementById(id);
+  console.log(`Looking for element with id "${id}":`, element);
+  return element;
+};
 
 // Simple helpers
 const fmt = (n) => {
@@ -21,6 +25,8 @@ const riskName = (r) => {
 };
 
 async function init() {
+  console.log("Dashboard init() function called");
+  
   // Load everything we might need from storage
   const { userData, recommendedRisk, investable, userProfile, traderType, analysisData } = await chrome.storage.local.get([
     "userData", "recommendedRisk", "investable", "userProfile", "traderType", "analysisData"
@@ -88,15 +94,20 @@ async function init() {
   }
 
   // Footer actions
+  console.log("Setting up footer actions...");
   const exportBtn = $("btnExport");
   console.log("Export button found:", exportBtn);
+  console.log("Export button element:", exportBtn?.tagName, exportBtn?.id);
+  
   if (exportBtn) {
+    console.log("Adding event listener to export button");
     exportBtn.addEventListener("click", async () => {
       console.log("Export button clicked!");
       await exportToPDF();
     });
+    console.log("Event listener added successfully");
   } else {
-    console.error("Export button not found!");
+    console.error("Export button not found! Available elements:", document.querySelectorAll('button'));
   }
 
   // Refresh button
