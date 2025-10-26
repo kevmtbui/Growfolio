@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Train Top 20 Tickers
-Fast training on the most important symbols
+Smart Train Top 20 Tickers
+Skips existing models and only trains missing ones
 """
 import os
 import time
@@ -25,9 +25,9 @@ def check_existing_models():
     
     return existing_models
 
-def train_top20_tickers():
-    """Train on top 20 most important tickers"""
-    print("Training Top 20 Tickers")
+def train_top20_tickers_smart():
+    """Train on top 20 most important tickers, skipping existing models"""
+    print("Smart Training - Top 20 Tickers")
     print("=" * 40)
     
     # Top 20 most important tickers
@@ -47,7 +47,7 @@ def train_top20_tickers():
     print("Checking existing models...")
     existing_models = check_existing_models()
     
-    # Count models to train
+    # Create list of models to train
     models_to_train = []
     for ticker in top20_tickers:
         for timeframe in timeframes:
@@ -129,31 +129,37 @@ def train_top20_tickers():
     failed = [r for r in results if r['status'] != 'success']
     
     print("Training Summary:")
-    print(f"Successful: {len(successful)} models")
-    print(f"Failed: {len(failed)} models")
-    print(f"Total time: {total_time/60:.1f} minutes")
+    print(f"✅ Successful: {len(successful)} models")
+    print(f"❌ Failed: {len(failed)} models")
+    print(f"⏱️  Total time: {total_time/60:.1f} minutes")
     
     if successful:
         avg_accuracy = sum(r['accuracy'] for r in successful) / len(successful)
-        print(f"Average accuracy: {avg_accuracy:.4f}")
+        print(f"📊 Average accuracy: {avg_accuracy:.4f}")
         
         # Show best performers
         best_models = sorted(successful, key=lambda x: x['accuracy'], reverse=True)[:5]
-        print(f"\nTop 5 Models:")
+        print(f"\n🏆 Top 5 New Models:")
         for i, model in enumerate(best_models, 1):
             print(f"  {i}. {model['ticker']} {model['timeframe']}: {model['accuracy']:.4f}")
     
-    print(f"\nCheck models/ folder for trained models")
+    # Show final model count
+    final_existing = check_existing_models()
+    print(f"\n📁 Total models now: {len(final_existing)}")
+    print(f"📁 Check models/ folder for all trained models")
+    
     return results
 
 def main():
     """Main function"""
-    print("ML Trading Bot - Top 20 Tickers Training")
-    print("=" * 50)
+    print("ML Trading Bot - Smart Top 20 Tickers Training")
+    print("=" * 55)
+    print("This script will only train models that don't already exist.")
+    print()
     
     # Auto-start training (no user input required)
-    print("Starting training automatically...")
-    train_top20_tickers()
+    print("Starting smart training...")
+    train_top20_tickers_smart()
 
 if __name__ == "__main__":
     main()

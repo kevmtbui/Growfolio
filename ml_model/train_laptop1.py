@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Train Top 20 Tickers
-Fast training on the most important symbols
+Laptop 1 Training Script
+Trains: INTC models + First 3 crypto models (BTC, ETH, BNB)
+Total: 8 models
 """
 import os
 import time
@@ -15,8 +16,6 @@ def check_existing_models():
     if os.path.exists(models_dir):
         for file in os.listdir(models_dir):
             if file.endswith('.pth'):
-                # Extract ticker and timeframe from filename
-                # Format: TICKER_TIMEFRAME_MODELTYPE.pth
                 parts = file.replace('.pth', '').split('_')
                 if len(parts) >= 3:
                     ticker = parts[0]
@@ -25,31 +24,24 @@ def check_existing_models():
     
     return existing_models
 
-def train_top20_tickers():
-    """Train on top 20 most important tickers"""
-    print("Training Top 20 Tickers")
+def train_laptop1():
+    """Train Laptop 1: INTC + BTC, ETH, BNB"""
+    print("💻 LAPTOP 1 TRAINING")
     print("=" * 40)
+    print("Models: INTC + BTC, ETH, BNB (8 models total)")
+    print()
     
-    # Top 20 most important tickers
-    top20_tickers = [
-        # Top 10 Stocks
-        'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA',
-        'NVDA', 'META', 'NFLX', 'AMD', 'INTC',
-        
-        # Top 10 Cryptos
-        'BTC_USDT', 'ETH_USDT', 'BNB_USDT', 'XRP_USDT', 'ADA_USDT',
-        'SOL_USDT', 'DOGE_USDT', 'DOT_USDT', 'AVAX_USDT', 'SHIB_USDT'
-    ]
-    
+    # Laptop 1 models
+    laptop1_tickers = ['INTC', 'BTC_USDT', 'ETH_USDT', 'BNB_USDT']
     timeframes = ['5m', '15m']
     
     # Check existing models
     print("Checking existing models...")
     existing_models = check_existing_models()
     
-    # Count models to train
+    # Create list of models to train
     models_to_train = []
-    for ticker in top20_tickers:
+    for ticker in laptop1_tickers:
         for timeframe in timeframes:
             model_key = f"{ticker}_{timeframe}"
             if model_key not in existing_models:
@@ -58,13 +50,11 @@ def train_top20_tickers():
                 print(f"  ✓ {ticker} {timeframe} - Already exists")
     
     if not models_to_train:
-        print("\n🎉 All models already exist! Nothing to train.")
+        print("\n🎉 All Laptop 1 models already exist! Nothing to train.")
         return []
     
-    print(f"\nTraining {len(models_to_train)} missing models")
-    print(f"Total possible: {len(top20_tickers) * len(timeframes)} models")
-    print(f"Already exist: {len(existing_models)} models")
-    print(f"Need training: {len(models_to_train)} models")
+    print(f"\nTraining {len(models_to_train)} models on Laptop 1")
+    print(f"Estimated time: {len(models_to_train) * 8} minutes")
     print()
     
     trainer = TradingModelTrainer(model_type='lstm')
@@ -77,13 +67,10 @@ def train_top20_tickers():
         print(f"[{i}/{len(models_to_train)}] Training {ticker} {timeframe}")
         
         try:
-            # Prepare data
             data = trainer.prepare_data(ticker, timeframe)
             
             if data:
-                # Train model with reduced epochs for speed
-                model_results = trainer.train_model(data, ticker, timeframe, epochs=10)
-                
+                model_results = trainer.train_model(data, ticker, timeframe, epochs=8)
                 completed += 1
                 accuracy = model_results['test_acc']
                 
@@ -128,32 +115,27 @@ def train_top20_tickers():
     successful = [r for r in results if r['status'] == 'success']
     failed = [r for r in results if r['status'] != 'success']
     
-    print("Training Summary:")
-    print(f"Successful: {len(successful)} models")
-    print(f"Failed: {len(failed)} models")
-    print(f"Total time: {total_time/60:.1f} minutes")
+    print("LAPTOP 1 Training Summary:")
+    print(f"✅ Successful: {len(successful)} models")
+    print(f"❌ Failed: {len(failed)} models")
+    print(f"⏱️  Total time: {total_time/60:.1f} minutes")
     
     if successful:
         avg_accuracy = sum(r['accuracy'] for r in successful) / len(successful)
-        print(f"Average accuracy: {avg_accuracy:.4f}")
-        
-        # Show best performers
-        best_models = sorted(successful, key=lambda x: x['accuracy'], reverse=True)[:5]
-        print(f"\nTop 5 Models:")
-        for i, model in enumerate(best_models, 1):
-            print(f"  {i}. {model['ticker']} {model['timeframe']}: {model['accuracy']:.4f}")
+        print(f"📊 Average accuracy: {avg_accuracy:.4f}")
     
-    print(f"\nCheck models/ folder for trained models")
+    print(f"\n📁 Check models/ folder for trained models")
     return results
 
 def main():
     """Main function"""
-    print("ML Trading Bot - Top 20 Tickers Training")
+    print("🤖 ML Trading Bot - Laptop 1 Training")
     print("=" * 50)
+    print("This laptop will train: INTC + BTC, ETH, BNB")
+    print("Total models: 8")
+    print()
     
-    # Auto-start training (no user input required)
-    print("Starting training automatically...")
-    train_top20_tickers()
+    train_laptop1()
 
 if __name__ == "__main__":
     main()
