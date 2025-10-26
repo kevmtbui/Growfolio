@@ -14,7 +14,7 @@ from huggingface_hub import HfApi, create_repo
 import os
 
 # Configuration - CHANGE THIS TO YOUR USERNAME
-REPO_NAME = "your-username/growfolio-models"  # Example: "john-doe/growfolio-models"
+REPO_NAME = "kevmtbui/growfolio-models"  # Example: "john-doe/growfolio-models"
 MODEL_DIR = Path("ml_model/models")
 
 def upload_models_to_hf():

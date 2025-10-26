@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 # Configuration - UPDATE THIS WITH YOUR HUGGING FACE REPO
-REPO_NAME = "your-username/growfolio-models"  # Example: "john-doe/growfolio-models"
+REPO_NAME = "kevmtbui/growfolio-models"  # Example: "john-doe/growfolio-models"
 
 # Directories
 BASE_DIR = Path(__file__).parent.parent
