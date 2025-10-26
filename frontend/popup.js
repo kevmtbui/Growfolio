@@ -568,10 +568,10 @@ nextBtn.addEventListener("click", async () => {
       <div style="text-align: center; padding: 60px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center; animation: fadeInUp 0.6s ease-out;">
         <h2 style="margin-bottom: 15px; font-size: 20px; animation: slideInUp 0.8s ease-out 0.2s both;">AI Generating Stock Recommendations</h2>
         <p class="muted" style="font-size: 14px; margin-bottom: 30px; animation: slideInUp 0.8s ease-out 0.4s both;">Our AI is analyzing market data and your profile to find the best investment opportunities for you</p>
-        <div style="display: flex; justify-content: center; gap: 8px; margin-top: 20px; margin-bottom: 30px;">
-          <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
-          <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
-          <div style="width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px; margin-bottom: 30px;">
+          <div style="width: 16px; height: 16px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+          <div style="width: 16px; height: 16px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
+          <div style="width: 16px; height: 16px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
         </div>
       </div>
     `;

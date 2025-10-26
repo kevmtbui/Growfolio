@@ -88,9 +88,16 @@ async function init() {
   }
 
   // Footer actions
-  $("btnExport").addEventListener("click", async () => {
-    await exportToPDF();
-  });
+  const exportBtn = $("btnExport");
+  console.log("Export button found:", exportBtn);
+  if (exportBtn) {
+    exportBtn.addEventListener("click", async () => {
+      console.log("Export button clicked!");
+      await exportToPDF();
+    });
+  } else {
+    console.error("Export button not found!");
+  }
 
   // Refresh button
   $("btnRefresh").addEventListener("click", async () => {
@@ -136,10 +143,10 @@ async function refreshRecommendations() {
       <div style="text-align: center; padding: 40px 20px; animation: fadeInUp 0.6s ease-out;">
         <h3 style="margin-bottom: 10px; font-size: 16px;">AI Finding the Best Stocks</h3>
         <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">Analyzing latest market data and your profile</p>
-        <div style="display: flex; justify-content: center; gap: 6px;">
-          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
-          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
-          <div style="width: 6px; height: 6px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
+        <div style="display: flex; justify-content: center; gap: 12px;">
+          <div style="width: 16px; height: 16px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+          <div style="width: 16px; height: 16px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
+          <div style="width: 16px; height: 16px; background: var(--brand); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
         </div>
       </div>
     `;
@@ -227,9 +234,12 @@ async function refreshRecommendations() {
 
 async function exportToPDF() {
   try {
+    console.log("Export button clicked - starting export...");
     const { userData, recommendedRisk, userProfile, traderType, analysisData } = await chrome.storage.local.get([
       "userData", "recommendedRisk", "userProfile", "traderType", "analysisData"
     ]);
+    
+    console.log("Export data loaded:", { userData, recommendedRisk, userProfile, traderType, analysisData });
 
     // Create formatted text content for PDF
     let content = "GROWFOLIO INVESTMENT REPORT\n";
