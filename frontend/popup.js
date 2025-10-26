@@ -261,7 +261,7 @@ function validateAndCollect() {
       for (const inp of inputs) {
         const name = inp.name.split(":")[1];
         const v = num(inp.value);
-        if (v < 0) return { ok: false, msg: "Values can’t be negative." };
+        if (v < 0) return { ok: false, msg: "Values can't be negative." };
         obj[name] = v;
         if (v) hasValue = true;
       }
@@ -342,7 +342,7 @@ function computeRisk() {
 
   const warnings = [];
   if (investable <= 0) warnings.push("Your expenses are equal to or higher than income — consider pausing investing until cash flow is positive.");
-  if (runway < 3) warnings.push(`Emergency fund is low (~${runway.toFixed(1)} months). Aim for 3–6 months before taking higher risk.`);
+  if (runway < 3) warnings.push(`Emergency fund is low (~${runway.toFixed(1)} months). Aim for 3=6 months before taking higher risk.`);
 
   // Always show risk info in green
   let msg = `<div class="risk-info">`;

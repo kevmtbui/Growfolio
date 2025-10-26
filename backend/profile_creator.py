@@ -5,7 +5,7 @@ from explanations import summarize_advice, explain_stock_recommendation
 
 def risk_assessment_score(raw_answers: Dict[str, Any]) -> int:
     """
-    Your real 1–10 scoring logic based on the 16 questions goes here.
+    Your real 1-10 scoring logic based on the 16 questions goes here.
     Must return int in [1,10].
     """
     # Import the existing risk assessment from gemini_service

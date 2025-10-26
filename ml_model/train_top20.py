@@ -87,7 +87,7 @@ def train_top20_tickers():
                 completed += 1
                 accuracy = model_results['test_acc']
                 
-                print(f"    ✅ SUCCESS: {ticker} {timeframe}: {accuracy:.4f}")
+                print(f"SUCCESS: {ticker} {timeframe}: {accuracy:.4f}")
                 
                 results.append({
                     'ticker': ticker,
@@ -96,7 +96,7 @@ def train_top20_tickers():
                     'status': 'success'
                 })
             else:
-                print(f"    ❌ ERROR: No data for {ticker} {timeframe}")
+                print(f"ERROR: No data for {ticker} {timeframe}")
                 results.append({
                     'ticker': ticker,
                     'timeframe': timeframe,
@@ -105,7 +105,7 @@ def train_top20_tickers():
                 })
                 
         except Exception as e:
-            print(f"    ❌ ERROR: {e}")
+            print(f"ERROR: {e}")
             results.append({
                 'ticker': ticker,
                 'timeframe': timeframe,

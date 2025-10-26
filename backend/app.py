@@ -83,22 +83,22 @@ QUESTION_SECTIONS = [
         ]
     },
     {   "id": 3,
-        "title": "Personal Profile",
+        "title": "Investment Behaviour Insights",
         "questions": [
+            {"id": 13, "text": "What is your investing experience?", "type": "multiple_choice",
+             "options": ["Beginner", "Intermediate", "Advanced"]},
+            {"id": 14, "text": "How frequently do you check your portfolio or market news?", "type": "multiple_choice",
+             "options": ["Daily", "Weekly", "Monthly", "Rarely"]},
+            {"id": 16, "text": "What do you want your portfolio to prioritize", "type": "multiple_choice",
+             "options": ["Safety & Stability", "Balanced Growth", "Aggressive Growth"]},
             {"id": 12, "text": "If your investment dropped 20% in a month, what would you do?", "type": "multiple_choice",
              "options": ["Sell everything", "Sell some", "Do nothing", "Buy more"]},
-            {"id": 13, "text": "How experienced are you with investing?", "type": "multiple_choice",
-             "options": ["Beginner", "Intermediate", "Advanced"]},
-            {"id": 14, "text": "How often do you check your portfolio or market news?", "type": "multiple_choice",
-             "options": ["Daily", "Weekly", "Monthly", "Rarely"]},
             {"id": 15, "text": "Which statement best describes you?", "type": "multiple_choice",
              "options": [
-                 "I'd rather miss some gains than lose money.",
-                 "I'm okay with short-term losses if I can earn more long-term.",
+                 "Miss some gains rather than lose money.",
+                 "Take short-term losses to earn more long-term.",
                  "I enjoy taking calculated risks."
-             ]},
-            {"id": 16, "text": "Would you prefer your portfolio to prioritize…", "type": "multiple_choice",
-             "options": ["Safety & Stability", "Balanced Growth", "Aggressive Growth"]}
+             ]}
         ]
     }
 ]

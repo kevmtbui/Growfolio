@@ -176,7 +176,7 @@ def create_user_profile(user_data: dict) -> dict:
     Growth preference: {user_data.get('11')}
     Reaction to 20% loss: {user_data.get('12')}
 
-    Behavioral / Psychological:
+    Investment Behaviour Insights:
     Experience level: {user_data.get('13')}
     Portfolio checking frequency: {user_data.get('14')}
     Investor style: {user_data.get('15')}
@@ -190,15 +190,6 @@ def create_user_profile(user_data: dict) -> dict:
 
     Also utlilze the user's risk assesment score: {riskScore}, which is a 1-10 risk score with 0.1 precision based on the questionnaire.
     """  
-    
-    if investment_goal == "retirement":
-        prompt += ""  
-
-    elif investment_goal == "short-term trading":
-        prompt += ""
-
-    elif investment_goal == "supplemental income":
-        prompt += ""
     
     model = genai.GenerativeModel("models/gemini-2.5-flash")
     response = model.generate_content(prompt)
@@ -305,16 +296,3 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanations 
         }
     
     return portfolio
-
-def explain_stock(stock_name: str, user_profile: dict, ml_output: dict) -> str:
-    """
-    Uses Gemini to convert ML prediction + user profile into plain-language recommendation
-    """
-    prompt = f"""
-    User profile: {json.dumps(user_profile)}
-    ML output: {json.dumps(ml_output)}
-    Explain why stock {stock_name} is suitable or not for this user in plain English.
-    """
-    model = genai.GenerativeModel("models/gemini-2.5-flash")
-    response = model.generate_content(prompt)
-    return response.text
