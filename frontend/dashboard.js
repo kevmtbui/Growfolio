@@ -61,7 +61,7 @@ const riskName = (r) => {
 
   // Back button
   $("btnSettings").addEventListener("click", () => {
-    window.location.href = "popup.html?from=dashboard";
+    window.location.href = "popup.html";
   });
 })();
 

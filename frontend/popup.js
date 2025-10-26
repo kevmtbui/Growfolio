@@ -82,24 +82,13 @@ const goDashRow = document.getElementById("goDashRow");
 const goDashboardBtn = document.getElementById("goDashboardBtn");
 
 // Restore stored progress
-chrome.storage.local.get(["userData", "currentSlide", "userProfile", "traderType", "analysisData", "skipAutoRedirect"], (st) => {
+chrome.storage.local.get(["userData", "currentSlide", "userProfile", "traderType", "analysisData"], (st) => {
   console.log("Popup startup - checking stored data:", st);
   
-  // Check if user explicitly came from dashboard (back button)
-  const urlParams = new URLSearchParams(window.location.search);
-  const fromDashboard = urlParams.get('from') === 'dashboard';
+  // Always show the form - let users manually navigate to dashboard if they want
+  console.log("Showing form");
   
-  // If user has completed the form and has recommendations, go straight to dashboard
-  // UNLESS they came from the dashboard (clicked back button)
-  if (st.traderType && st.analysisData && st.userProfile && !fromDashboard) {
-    console.log("Found complete profile data, redirecting to dashboard");
-    window.location.href = "dashboard.html";
-    return;
-  }
-  
-  console.log("No complete profile found OR user came from dashboard, showing form");
-  
-  // Otherwise, restore progress and show form
+  // Restore progress and show form
   if (st.userData) answers = st.userData;
   if (Number.isInteger(st.currentSlide)) slideIndex = Math.min(st.currentSlide, SLIDES.length - 1);
   if (st.userProfile) userProfile = st.userProfile;
