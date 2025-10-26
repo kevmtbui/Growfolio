@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "GrowFolio",
   "version": "1.1.0",
-  "description": "ML-powered financial advisor demo",
+  "description": "Gemini and ML-powered Financial Investing and Teaching Tool",
   "action": {
     "default_title": "GrowFolio - Risk Intake",
     "default_popup": "popup.html",
