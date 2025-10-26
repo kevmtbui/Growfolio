@@ -86,12 +86,6 @@ async function init() {
   }
 
   // Footer actions
-  const exportBtn = $("btnExport");
-  if (exportBtn) {
-    exportBtn.addEventListener("click", async () => {
-      await exportToPDF();
-    });
-  }
 
   // Refresh button
   $("btnRefresh").addEventListener("click", async () => {
