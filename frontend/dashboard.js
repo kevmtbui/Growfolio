@@ -1,5 +1,5 @@
 // Dashboard logic: read stored profile, compute stats, fetch explanations
-const API_BASE = "http://localhost:8000";
+const API_BASE = "https://growfolio-production.up.railway.app/";
 
 const $ = (id) => document.getElementById(id);
 
