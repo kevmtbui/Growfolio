@@ -633,3 +633,6 @@ async function explain(ticker, userProfile, predictionData = null) {
   }
 }
 
+// Initialize the dashboard
+init();
+
