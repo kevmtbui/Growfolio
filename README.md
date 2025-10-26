@@ -35,16 +35,17 @@ Growfolio is a Chrome extension that provides personalized investment recommenda
 
 ### Step 1: Download the Extension
 
-1. **Download or Clone the Repository**:
-   ```bash
-   git clone https://github.com/your-username/Growfolio.git
-   cd Growfolio
-   ```
-
-2. **Or download as ZIP**:
+1. **Download the Frontend Folder**:
    - Click the green "Code" button on GitHub
    - Select "Download ZIP"
    - Extract the ZIP file to a folder on your computer
+   - Navigate to the `frontend` folder inside the extracted files
+
+2. **Or clone just the frontend**:
+   ```bash
+   git clone https://github.com/your-username/Growfolio.git
+   cd Growfolio/frontend
+   ```
 
 ### Step 2: Verify Backend Connection (Optional)
 
@@ -64,7 +65,7 @@ The extension connects to a backend server hosted on Railway. The backend is alr
 
 3. **Load the Extension**:
    - Click "Load unpacked"
-   - Navigate to the `frontend` folder inside the Growfolio folder
+   - Navigate to the `frontend` folder you downloaded
    - Select the `frontend` folder
    - Click "Select Folder" (or "Open" on Mac)
 
@@ -93,7 +94,8 @@ The extension connects to a backend server hosted on Railway. The backend is alr
 ## Troubleshooting
 
 ### Extension Not Loading?
-- Make sure you selected the `frontend` folder (not the parent folder)
+- Make sure you selected the `frontend` folder (not the parent Growfolio folder)
+- The `frontend` folder should contain `manifest.json`, `popup.html`, etc.
 - Check that Developer mode is enabled
 - Try reloading the extension (click the refresh icon on the extension card)
 
