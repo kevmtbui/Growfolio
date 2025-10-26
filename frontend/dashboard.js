@@ -238,12 +238,7 @@ async function renderDayTraderContent(analysisData, userProfile) {
       recsList.appendChild(card);
     }
 
-    insight.innerHTML = `
-      <strong>Market Sentiment:</strong> ${analysisData.analysis.market_sentiment}<br>
-      <strong>Volatility:</strong> ${analysisData.analysis.volatility_level}<br>
-      <strong>Position Size:</strong> ${analysisData.analysis.recommended_position_size}<br>
-      <em>These are ML-generated predictions for short-term trading. Always do your own research.</em>
-    `;
+    insight.innerHTML = `<em>These are ML-generated predictions for short-term trading. Always do your own research.</em>`;
   } else {
     // Fallback if no analysis data
     recsList.innerHTML = "<p class='muted'>No trading signals available. Please refresh or check your connection.</p>";
