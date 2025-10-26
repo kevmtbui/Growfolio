@@ -5,8 +5,47 @@ from gemini_service import create_user_profile, explain_stock
 from profile_creator import create_user_profile as create_advanced_profile
 from explanations import explain_stock_recommendation
 import json
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+# Import ML loader
+try:
+    from ml_loader import ensure_models_ready, get_model_loader
+    ML_AVAILABLE = True
+except ImportError:
+    print("⚠️  ML loader not available")
+    ML_AVAILABLE = False
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup and shutdown events"""
+    # Startup: Download ML models from Hugging Face
+    print("\n" + "=" * 80)
+    print("Starting Growfolio Backend")
+    print("=" * 80)
+    
+    if ML_AVAILABLE:
+        print("\nInitializing ML models...")
+        try:
+            # Download models for top stocks
+            symbols = ["AAPL", "MSFT", "NVDA", "TSLA", "GOOGL", "AMZN", "META", "GOOGL"]
+            ensure_models_ready(symbols=symbols)
+            print("✓ ML models ready")
+        except Exception as e:
+            print(f"⚠️  ML models initialization failed: {e}")
+            print("   Will use fallback predictions")
+    else:
+        print("⚠️  ML models not available - using fallback predictions")
+    
+    print("=" * 80)
+    print("✓ Backend ready!")
+    print("=" * 80 + "\n")
+    
+    yield
+    
+    # Shutdown
+    print("\nShutting down...")
+
+app = FastAPI(lifespan=lifespan)
 
 # CORS settings for local Chrome extension demo
 app.add_middleware(

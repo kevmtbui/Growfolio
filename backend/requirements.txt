@@ -3,3 +3,8 @@ uvicorn
 python-dotenv
 google-generativeai
 requests
+huggingface_hub
+torch
+numpy
+pandas
+scikit-learn
