@@ -305,3 +305,16 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanations 
         }
     
     return portfolio
+
+def explain_stock(stock_name: str, user_profile: dict, ml_output: dict) -> str:
+    """
+    Uses Gemini to convert ML prediction + user profile into plain-language recommendation
+    """
+    prompt = f"""
+    User profile: {json.dumps(user_profile)}
+    ML output: {json.dumps(ml_output)}
+    Explain why stock {stock_name} is suitable or not for this user in plain English.
+    """
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
+    response = model.generate_content(prompt)
+    return response.text
