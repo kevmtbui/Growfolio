@@ -146,7 +146,7 @@ async function refreshRecommendations() {
         <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
         <path d="M3 21v-5h5"/>
       </svg>
-      Refreshing...
+      Refreshing
     `;
     
     // Show loading message during refresh
@@ -697,6 +697,16 @@ async function explain(ticker, userProfile, predictionData = null) {
   }
 }
 
+// Test if button exists immediately
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("DOM loaded, checking for export button...");
+  const testBtn = document.getElementById('btnExport');
+  console.log("Export button on DOM load:", testBtn);
+});
+
 // Initialize the dashboard
-init();
+console.log("About to call init()");
+init().catch(error => {
+  console.error("Error in init():", error);
+});
 
