@@ -193,7 +193,6 @@ def create_user_profile(user_data: dict) -> dict:
     investing is not ideal.
 
     Also utlilze the user's risk assesment score: {riskScore}, which is a 1-10 risk score with 0.1 precision based on the questionnaire.
-    
     """  
     
     if investment_goal == "retirement":
