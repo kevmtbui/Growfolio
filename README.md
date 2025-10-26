@@ -42,7 +42,7 @@ Growfolio is a Chrome extension that provides personalized investment recommenda
    - Navigate to the `frontend` folder inside the extracted files
 
 2. **Or clone just the frontend**:
-   ```bash
+```bash
    git clone https://github.com/your-username/Growfolio.git
    cd Growfolio/frontend
    ```
@@ -109,26 +109,6 @@ The extension connects to a backend server hosted on Railway. The backend is alr
 - Check the browser console (F12) for any error messages
 - Make sure you're connected to the internet
 
-## Project Structure
-
-```
-Growfolio/
-├── frontend/           # Chrome extension (HTML/CSS/JS)
-│   ├── popup.html     # Main extension UI
-│   ├── dashboard.html # Results dashboard
-│   ├── manifest.json  # Extension configuration
-│   └── ...
-├── backend/           # Python FastAPI server
-│   ├── app.py        # Main API endpoints
-│   ├── gemini_service.py  # AI integration
-│   ├── ml_loader.py  # ML model loading
-│   └── ...
-├── ml_model/         # Machine learning models
-│   ├── models/       # Trained model files
-│   ├── src/          # Training scripts
-│   └── README.md     # ML model documentation
-└── README.md         # This file
-```
 
 ## How It Works
 
@@ -166,20 +146,14 @@ Results are shown in an easy-to-understand dashboard with:
 
 The backend is hosted on Railway and already configured with all necessary API keys. Users don't need to configure anything - just install the extension and start using it!
 
-## Development
+### ML Models
 
-For developers who want to modify the code:
+The machine learning models used for day trading predictions are publicly available on Hugging Face:
+- **Repository**: [https://huggingface.co/kevmtbui/growfolio-models/tree/main](https://huggingface.co/kevmtbui/growfolio-models/tree/main)
+- **Models**: LSTM neural networks trained on 5-minute and 15-minute intervals
+- **Assets**: Covers stocks (AAPL, MSFT, NVDA, TSLA, etc.) and cryptocurrencies (BTC, ETH, ADA, SOL, etc.)
+- **Total Size**: ~3.11 MB of trained model files
 
-### Running the Backend Locally
-1. Install dependencies: `pip install -r backend/requirements.txt`
-2. Set up environment variables in `backend/.env`
-3. Run: `cd backend && python -m uvicorn app:app --reload`
-
-### Testing the Extension
-1. Load the extension in Chrome (Developer mode)
-2. Complete the questionnaire
-3. Check browser console (F12) for any errors
-4. The extension connects to Railway backend by default
 
 ## Technologies Used
 
@@ -210,4 +184,3 @@ If you encounter issues:
 
 - Google Gemini AI for natural language explanations
 - Finnhub for real-time market data
-- The open-source community for excellent ML tools
