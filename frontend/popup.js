@@ -1,5 +1,5 @@
 // ====== GrowFolio Intake (3 slides, compact UI) ======
-const API_BASE = "http://localhost:8000";
+const API_BASE = "http://localhost:8001";
 
 /**
  * 3 slides mirroring your backend sections.
