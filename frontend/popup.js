@@ -396,13 +396,11 @@ async function createProfile() {
       isAdvancedProfile: !!userProfile && !data.error
     });
 
-    output.innerHTML += `<br><span class="muted">Profile created via Gemini ✓</span>`;
-    output.innerHTML += `<br><span class="muted">Analysis: ${traderType} ✓</span>`;
-    if (userProfile && !data.error) {
-      output.innerHTML += `<br><span class="muted">Advanced portfolio system enabled ✓</span>`;
-    }
+    // Success - data is stored, will navigate to dashboard
+    return true;
   } catch (e) {
-    output.innerHTML += `<br><span class="muted">Profile error: ${String(e)}</span>`;
+    console.error("Profile creation error:", e);
+    throw e; // Re-throw to handle in the caller
   }
 }
 
@@ -452,11 +450,44 @@ nextBtn.addEventListener("click", async () => {
 
   // Last slide -> finish
   if (slideIndex === SLIDES.length - 1) {
-    computeRisk();
-    await createProfile();
-    goDashRow.classList.remove("hidden");
-    nextBtn.textContent = "Done";
+    // Show loading state
     nextBtn.disabled = true;
+    nextBtn.textContent = "Processing...";
+    container.innerHTML = "";
+    output.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+        <h3 style="margin-bottom: 10px;">Analyzing Your Profile</h3>
+        <p class="muted">Gemini AI is creating your personalized investment recommendations...</p>
+        <div style="margin-top: 20px;">
+          <div class="loading-dots">
+            <span>.</span><span>.</span><span>.</span>
+          </div>
+        </div>
+      </div>
+    `;
+    output.classList.remove("hidden");
+    
+    // Compute risk and create profile
+    try {
+      computeRisk();
+      await createProfile();
+      
+      // Navigate directly to dashboard when complete
+      window.location.href = "dashboard.html";
+    } catch (e) {
+      // Show error if profile creation fails
+      output.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+          <h3 style="margin-bottom: 10px; color: #9e1c1c;">Error Creating Profile</h3>
+          <p class="muted">${String(e)}</p>
+          <button onclick="location.reload()" style="margin-top: 20px; padding: 8px 16px; background: var(--brand); color: white; border: none; border-radius: 8px; cursor: pointer;">Try Again</button>
+        </div>
+      `;
+      nextBtn.disabled = false;
+      nextBtn.textContent = "Finish";
+    }
     return;
   }
 

@@ -102,11 +102,21 @@ async function renderDayTraderContent(analysisData, userProfile) {
     const predictions = analysisData.analysis.predictions;
 
     for (const pred of predictions) {
-      const explanation = await explain(pred.ticker, userProfile);
+      const explanation = await explain(pred.ticker, userProfile, pred);
       const rationale = explanation || `${pred.action.toUpperCase()} signal based on ML analysis`;
 
       const card = document.createElement("div");
       card.className = "rec";
+      
+      // Build price info
+      let priceInfo = "";
+      if (pred.current_price) {
+        priceInfo = `<p class="muted"><strong>Current:</strong> $${pred.current_price.toFixed(2)}`;
+        if (pred.target_buy) priceInfo += ` | <strong>Buy:</strong> $${pred.target_buy.toFixed(2)}`;
+        if (pred.target_sell) priceInfo += ` | <strong>Sell:</strong> $${pred.target_sell.toFixed(2)}`;
+        priceInfo += `</p>`;
+      }
+      
       card.innerHTML = `
         <div class="top">
           <div>
@@ -115,7 +125,7 @@ async function renderDayTraderContent(analysisData, userProfile) {
           </div>
           <div class="conf">${pred.confidence}% confidence</div>
         </div>
-        <p class="muted">Timeframe: ${pred.timeframe}</p>
+        ${priceInfo}
         <p class="muted">${rationale}</p>
       `;
       recsList.appendChild(card);
@@ -295,16 +305,26 @@ async function refreshAnalysis() {
     insight.textContent = "Failed to refresh analysis. Please try again.";
   }
 }
-async function explain(ticker, userProfile) {
+async function explain(ticker, userProfile, predictionData = null) {
   try {
     if (!userProfile) return ""; // will fall back on generic text
+    
+    const ml_output = predictionData ? {
+      confidence: predictionData.confidence,
+      action: predictionData.action,
+      current_price: predictionData.current_price,
+      target_buy: predictionData.target_buy,
+      target_sell: predictionData.target_sell,
+      timeframe: predictionData.timeframe
+    } : { confidence: 80, action: "buy" };
+    
     const resp = await fetch(`${API_BASE}/recommend_stock`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         stock_name: ticker,
         user_profile: userProfile,
-        ml_output: { confidence: 80, action: "buy" } // placeholder
+        ml_output: ml_output
       })
     });
     const data = await resp.json();
