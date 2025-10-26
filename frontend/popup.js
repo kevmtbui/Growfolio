@@ -36,8 +36,9 @@ const SLIDES = [
         key: "retire_age", text: "If retirement, at what age would you like to retire?", type: "int", min: 18, max: 120,
         conditional: { key: "primary_goal", equals: "Retirement" }
       },
-      { key: "invest_pct", text: "How much of your net savings are you willing to invest?", type: "slider", min: 0, max: 100 },
-      { key: "risk_scale", text: "Preference: steady vs. higher returns (1–5)", type: "scale", min: 1, max: 5 }
+      // CHANGED: slider now 1–100 (percent)
+      { key: "invest_pct", text: "How much of your net savings are you willing to invest?", type: "slider", min: 1, max: 100 },
+      { key: "risk_scale", text: "Preference: steady vs. higher returns (1-5)", type: "scale", min: 1, max: 5 }
     ]
   },
   {
@@ -158,20 +159,40 @@ function renderSlide() {
       wrap.appendChild(inp);
 
     } else if (q.type === "slider" || q.type === "scale") {
+      // FIXED: correct percent label handling (no innerHTML mutation)
       const min = q.min ?? 1, max = q.max ?? 5;
+
       const rw = document.createElement("div");
       rw.className = "range-wrap";
+
       const rng = document.createElement("input");
-      rng.type = "range"; rng.min = String(min); rng.max = String(max); rng.step = "1";
-      rng.className = "q-input"; rng.name = q.key; rng.value = String(answers[q.key] ?? min);
+      rng.type = "range";
+      rng.min = String(min);
+      rng.max = String(max);
+      rng.step = "1";
+      rng.className = "q-input";
+      rng.name = q.key;
+      rng.value = String(answers[q.key] ?? min);
+
       const val = document.createElement("div");
       val.className = "range-value";
+
       const span = document.createElement("span");
-      span.id = `range-${q.key}`; span.textContent = String(rng.value);
+      span.id = `range-${q.key}`;
+      span.textContent = String(rng.value);
+
       val.appendChild(span);
-      if (q.type === "slider") { val.innerHTML += "%"; val.insertBefore(span, val.firstChild); }
-      rng.addEventListener("input", () => { span.textContent = String(rng.value); });
-      rw.appendChild(rng); rw.appendChild(val);
+      if (q.type === "slider") {
+        // Append a text node for '%' once — prevents duplicate digits like "1001%"
+        val.appendChild(document.createTextNode("%"));
+      }
+
+      rng.addEventListener("input", () => {
+        span.textContent = String(rng.value);
+      });
+
+      rw.appendChild(rng);
+      rw.appendChild(val);
       wrap.appendChild(rw);
 
     } else if (q.type === "categories") {
@@ -396,11 +417,13 @@ async function createProfile() {
       isAdvancedProfile: !!userProfile && !data.error
     });
 
-    // Success - data is stored, will navigate to dashboard
-    return true;
+    output.innerHTML += `<br><span class="muted">Profile created via Gemini ✓</span>`;
+    output.innerHTML += `<br><span class="muted">Analysis: ${traderType} ✓</span>`;
+    if (userProfile && !data.error) {
+      output.innerHTML += `<br><span class="muted">Advanced portfolio system enabled ✓</span>`;
+    }
   } catch (e) {
-    console.error("Profile creation error:", e);
-    throw e; // Re-throw to handle in the caller
+    output.innerHTML += `<br><span class="muted">Profile error: ${String(e)}</span>`;
   }
 }
 
@@ -450,44 +473,11 @@ nextBtn.addEventListener("click", async () => {
 
   // Last slide -> finish
   if (slideIndex === SLIDES.length - 1) {
-    // Show loading state
+    computeRisk();
+    await createProfile();
+    goDashRow.classList.remove("hidden");
+    nextBtn.textContent = "Done";
     nextBtn.disabled = true;
-    nextBtn.textContent = "Processing...";
-    container.innerHTML = "";
-    output.innerHTML = `
-      <div style="text-align: center; padding: 40px 20px;">
-        <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
-        <h3 style="margin-bottom: 10px;">Analyzing Your Profile</h3>
-        <p class="muted">Gemini AI is creating your personalized investment recommendations...</p>
-        <div style="margin-top: 20px;">
-          <div class="loading-dots">
-            <span>.</span><span>.</span><span>.</span>
-          </div>
-        </div>
-      </div>
-    `;
-    output.classList.remove("hidden");
-    
-    // Compute risk and create profile
-    try {
-      computeRisk();
-      await createProfile();
-      
-      // Navigate directly to dashboard when complete
-      window.location.href = "dashboard.html";
-    } catch (e) {
-      // Show error if profile creation fails
-      output.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-          <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
-          <h3 style="margin-bottom: 10px; color: #9e1c1c;">Error Creating Profile</h3>
-          <p class="muted">${String(e)}</p>
-          <button onclick="location.reload()" style="margin-top: 20px; padding: 8px 16px; background: var(--brand); color: white; border: none; border-radius: 8px; cursor: pointer;">Try Again</button>
-        </div>
-      `;
-      nextBtn.disabled = false;
-      nextBtn.textContent = "Finish";
-    }
     return;
   }
 
@@ -499,3 +489,28 @@ nextBtn.addEventListener("click", async () => {
 goDashboardBtn.addEventListener("click", () => {
   window.location.href = "dashboard.html";
 });
+
+// ====== Dashboard logic (from your earlier popup context) ======
+
+// Simple helpers
+const $ = (id) => document.getElementById(id);
+
+// You likely already have the rest of your dashboard JS elsewhere; keeping the helpers here
+async function explain(ticker, userProfile) {
+  try {
+    if (!userProfile) return ""; // will fall back on generic text
+    const resp = await fetch(`${API_BASE}/recommend_stock`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        stock_name: ticker,
+        user_profile: userProfile,
+        ml_output: { confidence: 80, action: "buy" } // placeholder
+      })
+    });
+    const data = await resp.json();
+    return data?.gemini_explanation || "";
+  } catch (_) {
+    return "";
+  }
+}
