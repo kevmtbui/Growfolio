@@ -496,8 +496,8 @@ nextBtn.addEventListener("click", async () => {
     output.innerHTML = `
       <div style="text-align: center; padding: 60px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center;">
         <div style="font-size: 72px; margin-bottom: 30px;">⏳</div>
-        <h2 style="margin-bottom: 15px; font-size: 20px;">Analyzing Your Profile</h2>
-        <p class="muted" style="font-size: 14px; margin-bottom: 30px;">Gemini AI is creating your personalized investment recommendations<span class="loading-dots-text"></span></p>
+        <h2 style="margin-bottom: 15px; font-size: 20px;">Loading Recommendations</h2>
+        <p class="muted" style="font-size: 14px; margin-bottom: 30px;">Analyzing your profile and generating personalized investment recommendations<span class="loading-dots-text"></span></p>
       </div>
     `;
     output.classList.remove("hidden");
